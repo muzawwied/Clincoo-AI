@@ -6,3 +6,6 @@ pages_build_output_dir = "./public"
 binding = "DB"
 database_name = "modela"
 database_id = "67a0b4e7-0b6b-4801-9e3a-8e333b8584da"
+
+[ai]
+binding = "AI"
