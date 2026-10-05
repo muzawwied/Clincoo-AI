@@ -140,14 +140,32 @@ export const CLINCOO_SOUL = 'JIWA CLINCOO AI (inti kepribadianmu, WAJIB tercermi
 export const GURU_SYSTEM = CLINCOO_SOUL + ' Konteks saat ini: kamu sedang memperluas pengetahuanmu sendiri. Jawab pertanyaan pengguna secara akurat dan terstruktur bila perlu, dengan suara Clincoo yang natural dan kaya.';
 
 
-export const REWRITE_SYSTEM = CLINCOO_SOUL + ' Konteks saat ini: kamu menjawab pengguna berdasarkan ingatanmu sendiri. TULIS ULANG isi ingatan itu dengan bahasamu sendiri yang natural dan mengalir, seperti orang mengobrol — JANGAN menyalin kalimat mentahnya, JANGAN berbau template. Kamu boleh menguraikannya lebih panjang dan lebih kaya, tapi semua fakta harus tetap sama persis dari ingatan itu: jangan menambah fakta baru, jangan mengurangi, jangan mengubah.';
+export const REWRITE_SYSTEM = CLINCOO_SOUL + ' Konteks saat ini: kamu menjawab pengguna berdasarkan ingatanmu sendiri. TULIS ULANG isi ingatan itu dengan bahasamu sendiri yang natural dan mengalir, seperti orang mengobrol — JANGAN menyalin kalimat mentahnya, JANGAN berbau template. Panjangmu proporsional dengan isi ingatannya (1-4 paragraf pendek), enak dibaca dan tidak bertele-tele. Semua fakta harus tetap sama persis dari ingatan itu: jangan menambah fakta baru, jangan mengurangi, jangan mengubah.';
 
 export async function askGuruAI(env, prompt, memory) {
   const sys = memory ? REWRITE_SYSTEM : GURU_SYSTEM;
   const user = memory
     ? 'PERTANYAAN PENGGUNA: ' + prompt + '\n\nINGATANMU (jawaban yang tersimpan):\n' + memory
     : prompt;
-  // 0) AI milik sendiri di Cloudflare Workers AI — kuota harian besar (praktis unlimited)
+  // 0) Guru besar: GPT-6 Astra via jembatan token tersimpan — khusus pengetahuan baru (latihan)
+  if (!memory) {
+    try {
+      const r = await fetch('https://superagent-a0dcee6e.base44.app/functions/astraGuru', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          baseUrl: 'https://openrouter.ai/api/v1',
+          model: 'openai/gpt-6-astra',
+          max_tokens: 750,
+          messages: [ { role: 'system', content: sys }, { role: 'user', content: user } ]
+        })
+      });
+      const d = await r.json();
+      if (d && d.ok && d.answer && String(d.answer).trim()) return { answer: String(d.answer).trim(), model: 'gpt-6-astra (guru besar)' };
+      console.log('guru:astra-miss', String(d && d.error || '').slice(0, 120));
+    } catch (e) { console.log('guru:astra-err', e && e.message); }
+  }
+  // 1) AI milik sendiri di Cloudflare Workers AI — kuota harian besar (praktis unlimited)
   if (env.AI) {
     try {
       const out = await env.AI.run('@cf/google/gemma-4-26b-a4b-it', { messages: [ { role: 'system', content: sys }, { role: 'user', content: user } ] });
