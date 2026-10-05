@@ -18,6 +18,7 @@ disusun dari jawaban terkurasi (manusia + model besar).
 - `POST /api/generate` — `{ prompt, auto_save? }` → jawaban guru AI (OpenRouter → Gemini) yang otomatis disimpan sebagai data latihan
 - `GET /api/stats` — statistik publik
 - `POST /v1/chat/completions` — kompatibel OpenAI untuk integrasi
+- `POST /mcp` — server MCP (Model Context Protocol, Streamable HTTP stateless): full akses pengetahuan Clincoo untuk app AI lain (Claude Desktop dsb.). Tools: clincoo_ask, clincoo_search, clincoo_add, clincoo_list, clincoo_delete. Auth: header `Authorization: Bearer <MCP_TOKEN>` (secret env MCP_TOKEN, wajib diset — tanpa itu endpoint 503).
 
 ## Cara kerja Clincoo (MVP)
 Clincoo berbasis retrieval atas data latihan terkurasi (BM25-lite + bonus data yang
