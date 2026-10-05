@@ -1,5 +1,5 @@
-// Model A — endpoint kompatibel OpenAI (POST /v1/chat/completions) untuk
-// integrasi mudah: kirim messages, dapatkan jawaban Model A.
+// Clincoo — endpoint kompatibel OpenAI (POST /v1/chat/completions) untuk
+// integrasi mudah: kirim messages, dapatkan jawaban Clincoo.
 import { json, corsPreflight, ensureTables, rateLimit, bestMatch, MATCH_THRESHOLD } from '../../helpers.js';
 
 export async function onRequestOptions() { return corsPreflight(); }
@@ -26,13 +26,13 @@ export async function onRequestPost({ request, env }) {
 
   const now = Math.floor(Date.now() / 1000);
   return json({
-    id: 'chatcmpl-modela-' + now,
+    id: 'chatcmpl-clincoo-' + now,
     object: 'chat.completion',
     created: now,
-    model: body.model || 'model-a',
+    model: body.model || 'clincoo',
     choices: [{
       index: 0,
-      message: { role: 'assistant', content: reply || 'Model A belum dilatih untuk pertanyaan ini. Tambahkan jawabannya lewat Playground.' },
+      message: { role: 'assistant', content: reply || 'Clincoo belum dilatih untuk pertanyaan ini. Tambahkan jawabannya lewat Playground.' },
       finish_reason: reply ? 'stop' : 'no_match'
     }],
     usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 }

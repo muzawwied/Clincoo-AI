@@ -1,12 +1,12 @@
 // Generator pelatihan: minta jawaban "guru" dari AI besar (OpenRouter dulu,
-// lalu Gemini), dan otomatis SIMPAN jawaban itu sebagai data latihan Model A
+// lalu Gemini), dan otomatis SIMPAN jawaban itu sebagai data latihan Clincoo
 // (source 'model') — jadi Clincoo langsung "mengingat" hasil pelatihan ini.
 // Kunci API hanya di server (env), tidak pernah sampai ke browser.
 import { json, corsPreflight, rateLimit, ensureTables, normalizePrompt } from '../helpers.js';
 
 export async function onRequestOptions() { return corsPreflight(); }
 
-const SYSTEM = 'Kamu adalah guru penyusun data latihan untuk model kecil bernama Model A (asisten chat bernama Clincoo). Jawab pertanyaan pengguna secara ringkas, akurat, dan berstruktur (poin-poin bila perlu), dalam bahasa Indonesia yang natural. Jawabanmu akan langsung dipakai model kecil, jadi tulis jawaban final yang berdiri sendiri, tanpa membuka "Tentu!" atau tanya balik.';
+const SYSTEM = 'Kamu adalah guru penyusun data latihan untuk model kecil bernama Clincoo. Jawab pertanyaan pengguna secara ringkas, akurat, dan berstruktur (poin-poin bila perlu), dalam bahasa Indonesia yang natural. Jawabanmu akan langsung dipakai model kecil, jadi tulis jawaban final yang berdiri sendiri, tanpa membuka "Tentu!" atau tanya balik.';
 
 async function tryOpenRouter(key, prompt) {
   const models = ['openai/gpt-6-luna-pro', 'openai/gpt-6.1-sol-pro', 'z-ai/glm-5.3-flash'];
@@ -14,7 +14,7 @@ async function tryOpenRouter(key, prompt) {
     try {
       const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key, 'HTTP-Referer': 'https://www.clinqoo.biz.id', 'X-Title': 'Clincoo Model A' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key, 'HTTP-Referer': 'https://www.clinqoo.biz.id', 'X-Title': 'Clincoo' },
         body: JSON.stringify({
           model: model,
           messages: [

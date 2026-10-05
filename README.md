@@ -1,6 +1,6 @@
-# Model A — model kecil terlatih dari model besar
+# Clincoo — model kecil terlatih dari model besar
 
-Situs untuk proyek *distillation* Clincoo: Model A, model kecil yang pengetahuannya
+Situs untuk proyek *distillation* Clincoo: Clincoo, model kecil yang pengetahuannya
 disusun dari jawaban terkurasi (manusia + model besar).
 
 ## Halaman
@@ -19,14 +19,14 @@ disusun dari jawaban terkurasi (manusia + model besar).
 - `GET /api/stats` — statistik publik
 - `POST /v1/chat/completions` — kompatibel OpenAI untuk integrasi
 
-## Cara kerja Model A (MVP)
-Model A berbasis retrieval atas data latihan terkurasi (BM25-lite + bonus data yang
-disetujui manusia). Di bawah ambang kemiripan, Model A jujur mengaku belum dilatih,
+## Cara kerja Clincoo (MVP)
+Clincoo berbasis retrieval atas data latihan terkurasi (BM25-lite + bonus data yang
+disetujui manusia). Di bawah ambang kemiripan, Clincoo jujur mengaku belum dilatih,
 bukan menebak. Langkah lanjut (fine-tune sungguhan di GPU) bisa ditambah: dataset
 terkurasi di sini sudah berformat pasangan instruksi-jawaban.
 
 ## Deploy
-Cloudflare Pages project `modela` (repo GitHub `muzawwied/Model-A`, branch `main`).
+Cloudflare Pages project `modela` (repo GitHub `muzawwied/Clincoo-AI`, branch `main`).
 D1: binding `DB` (database `modela`). Environment secrets (hanya server-side): `OPENROUTER_KEY`, `GEMINI_KEY` (guru AI pelatihan).
 
 Domain: www.clinqoo.biz.id

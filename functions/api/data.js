@@ -1,4 +1,4 @@
-// Model A — API data latihan (Playground): daftar, tambah, nilai, edit, hapus.
+// Clincoo — API data latihan (Playground): daftar, tambah, nilai, edit, hapus.
 import { json, corsPreflight, ensureTables, rateLimit, normalizePrompt } from '../helpers.js';
 
 export async function onRequestOptions() { return corsPreflight(); }

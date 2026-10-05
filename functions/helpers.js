@@ -1,4 +1,4 @@
-// Model A — helper bersama: CORS, skema D1, tokenisasi, skor kemiripan, rate limit.
+// Clincoo — helper bersama: CORS, skema D1, tokenisasi, skor kemiripan, rate limit.
 
 export const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -81,7 +81,7 @@ export function normalizePrompt(text) {
   return tokenize(text).sort().join(' ');
 }
 
-// ---- Mesin "Model A": pencocokan BM25-lite atas kumpulan data latihan ----
+// ---- Mesin "Clincoo": pencocokan BM25-lite atas kumpulan data latihan ----
 // Skor dokumen dinormalisasi dengan skor pertanyaan terhadap dirinya sendiri
 // (self-score), jadi pertanyaan pendek maupun panjang dinilai adil.
 export function bestMatch(question, examples) {
@@ -125,5 +125,5 @@ export function bestMatch(question, examples) {
   return best;
 }
 
-// Ambang rasio kemiripan: di bawah ini Model A jujur mengaku belum dilatih.
+// Ambang rasio kemiripan: di bawah ini Clincoo jujur mengaku belum dilatih.
 export const MATCH_THRESHOLD = 0.62;

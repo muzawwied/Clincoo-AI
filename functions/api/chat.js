@@ -1,5 +1,5 @@
-// Model A — mesin obrolan: pertanyaan dicocokkan ke data latihan (retrieval + skor),
-// di bawah ambang kemiripan Model A jujur mengaku belum dilatih.
+// Clincoo — mesin obrolan: pertanyaan dicocokkan ke data latihan (retrieval + skor),
+// di bawah ambang kemiripan Clincoo jujur mengaku belum dilatih.
 import { json, corsPreflight, ensureTables, rateLimit, bestMatch, MATCH_THRESHOLD } from '../helpers.js';
 
 export async function onRequestOptions() { return corsPreflight(); }
@@ -8,7 +8,7 @@ const FALLBACK = 'Aku belum dilatih untuk pertanyaan itu, jadi aku tidak akan me
 
 // Identitas asisten: pertanyaan "kamu siapa / nama kamu apa" dijawab langsung,
 // tidak bergantung data latihan.
-const IDENTITY_ANSWER = 'Aku Clincoo, asisten AI dari Clincoo. Aku dilatih lewat Model A: pengetahuanku disusun dari jawaban terkurasi manusia dan model besar, jadi aku hanya menjawab yang benar-benar aku tahu. Kalau ada yang belum aku ketahui, aku akan bilang jujur.';
+const IDENTITY_ANSWER = 'Aku Clincoo, asisten AI dari Clincoo. Pengetahuanku disusun dari jawaban terkurasi manusia dan model besar, jadi aku hanya menjawab yang benar-benar aku tahu. Kalau ada yang belum aku ketahui, aku akan bilang jujur.';
 function isIdentityQuestion(message) {
   const q = String(message || '').toLowerCase();
   if (/who are you|perkenalkan diri|perkenalkan dirimu/.test(q)) return true;

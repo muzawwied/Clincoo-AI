@@ -1,4 +1,4 @@
-// Model A — statistik publik untuk halaman landing.
+// Clincoo — statistik publik untuk halaman landing.
 import { json, corsPreflight, ensureTables } from '../helpers.js';
 
 export async function onRequestOptions() { return corsPreflight(); }
