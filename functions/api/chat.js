@@ -58,11 +58,17 @@ export async function onRequestPost({ request, env }) {
   // jawabannya langsung disimpan sebagai ingatan baru — seperti AI pada umumnya.
   const match = bestMatch(message, examples);
   if (match && match.score >= MATCH_THRESHOLD) {
-    reply = match.example.answer;
     matchedId = match.example.id;
     score = Math.round(match.score * 100) / 100;
     matchedPrompt = match.example.prompt;
     source = match.example.source;
+    // Jawaban dari ingatan ditulis ulang dulu biar terdengar natural, bukan template.
+    const gen = await askGuruAI(env, message, match.example.answer);
+    if (gen) {
+      reply = gen.answer;
+    } else {
+      reply = match.example.answer; // guru sibuk → pakai ingatan mentah
+    }
   } else {
     const gen = await askGuruAI(env, message);
     if (gen) {

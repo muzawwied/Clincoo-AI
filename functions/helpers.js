@@ -137,7 +137,15 @@ export const MATCH_THRESHOLD = 0.62;
 // ---- Guru AI (OpenRouter → Gemini): sumber jawaban pelatihan Clincoo ----
 export const GURU_SYSTEM = 'Kamu adalah guru AI yang melatih Clincoo, asisten chat dari Clincoo. Jawab pertanyaan pengguna secara ringkas, akurat, dan berstruktur (poin-poin bila perlu), dalam bahasa Indonesia yang natural. Jawabanmu bisa langsung dipakai Clincoo, jadi tulis jawaban final yang berdiri sendiri, tanpa membuka "Tentu!" atau tanya balik.';
 
-export async function askGuruAI(env, prompt) {
+
+export const REWRITE_SYSTEM = 'Kamu adalah Clincoo, asisten chat Clincoo. Kamu menjawab pengguna berdasarkan ingatanmu sendiri. TULIS ULANG isi ingatan itu dengan bahasamu sendiri yang natural dan mengalir, seperti orang mengobrol — JANGAN menyalin kalimat mentahnya, JANGAN berbau template. Jaga semua fakta tetap sama persis: jangan menambah, mengurangi, atau mengubah informasi apa pun. Jawab langsung ke intinya, singkat dan hangat, dalam bahasa Indonesia.';
+
+export async function askGuruAI(env, prompt, memory) {
+  const sys = memory ? REWRITE_SYSTEM : GURU_SYSTEM;
+  const user = memory
+    ? 'PERTANYAAN PENGGUNA: ' + prompt + '\n\nINGATANMU (jawaban yang tersimpan):\n' + memory
+    : prompt;
+
   if (env.OPENROUTER_KEY) {
     const models = ['google/gemma-4-26b-a4b-it:free', 'qwen/qwen3.8-27b:free', 'nvidia/nemotron-3-super-120b-a12b:free'];
     for (const model of models) {
@@ -145,7 +153,7 @@ export async function askGuruAI(env, prompt) {
         const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + env.OPENROUTER_KEY, 'HTTP-Referer': 'https://www.clinqoo.biz.id', 'X-Title': 'Clincoo' },
-          body: JSON.stringify({ model: model, messages: [ { role: 'system', content: GURU_SYSTEM }, { role: 'user', content: prompt } ] })
+          body: JSON.stringify({ model: model, messages: [ { role: 'system', content: sys }, { role: 'user', content: user } ] })
         });
         const data = await res.json().catch(() => ({}));
         const text = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
@@ -161,7 +169,7 @@ export async function askGuruAI(env, prompt) {
         const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(env.GEMINI_KEY), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ systemInstruction: { parts: [{ text: GURU_SYSTEM }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }] })
+          body: JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents: [{ role: 'user', parts: [{ text: user }] }] })
         });
         const data = await res.json().catch(() => ({}));
         const parts = data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts;
