@@ -147,6 +147,15 @@ export async function askGuruAI(env, prompt, memory) {
   const user = memory
     ? 'PERTANYAAN PENGGUNA: ' + prompt + '\n\nINGATANMU (jawaban yang tersimpan):\n' + memory
     : prompt;
+  // 0) AI milik sendiri di Cloudflare Workers AI — kuota harian besar (praktis unlimited)
+  if (env.AI) {
+    try {
+      const out = await env.AI.run('@cf/google/gemma-4-26b-a4b-it', { messages: [ { role: 'system', content: sys }, { role: 'user', content: user } ] });
+      const text = out && (out.response || (out.choices && out.choices[0] && out.choices[0].message && out.choices[0].message.content));
+      if (text && String(text).trim()) return { answer: String(text).trim(), model: 'gemma-4-26b (Cloudflare sendiri)' };
+      console.log('guru:cf-empty');
+    } catch (e) { console.log('guru:cf-err', e && e.message); }
+  }
 
   if (env.OPENROUTER_KEY) {
     const models = ['google/gemma-4-26b-a4b-it:free', 'qwen/qwen3.8-27b:free', 'nvidia/nemotron-3-super-120b-a12b:free'];
