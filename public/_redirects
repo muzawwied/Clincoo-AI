@@ -1,3 +1,7 @@
 # chat sekarang di halaman utama
 /chat/  /  301
 /chat/*  /  301
+
+# playground sudah dihapus — arahkan ke halaman utama
+/playground/  /  301
+/playground/*  /  301
