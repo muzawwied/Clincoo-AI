@@ -150,7 +150,7 @@ export async function askGuruAI(env, prompt, memory) {
   // 0) AI milik sendiri di Cloudflare Workers AI — kuota harian besar (praktis unlimited)
   if (env.AI) {
     try {
-      const out = await env.AI.run('@cf/google/gemma-4-26b-a4b-it', { messages: [ { role: 'system', content: sys }, { role: 'user', content: user } ] });
+      const out = await env.AI.run('@cf/zai-org/glm-4.7-flash', { messages: [ { role: 'system', content: sys }, { role: 'user', content: user } ] });
       const text = out && (out.response || (out.choices && out.choices[0] && out.choices[0].message && out.choices[0].message.content));
       if (text && String(text).trim()) return { answer: String(text).trim(), model: 'gemma-4-26b (Cloudflare sendiri)' };
       console.log('guru:cf-empty');
