@@ -24,6 +24,7 @@ async function tryOpenRouter(key, prompt) {
         })
       });
       const data = await res.json().catch(() => ({}));
+      console.log('gen:or', model, res.status);
       const text = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
       if (res.ok && text) return { answer: String(text).trim(), model: model.split('/').pop() + ' (OpenRouter)' };
     } catch (e) { /* coba model berikutnya */ }
@@ -44,6 +45,7 @@ async function tryGemini(key, prompt) {
         })
       });
       const data = await res.json().catch(() => ({}));
+      console.log('gen:gem', model, res.status);
       const parts = data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts;
       const text = parts && parts.map(p => p.text || '').join('');
       if (res.ok && text) return { answer: String(text).trim(), model: model + ' (Gemini)' };
@@ -53,6 +55,7 @@ async function tryGemini(key, prompt) {
 }
 
 export async function onRequestPost({ request, env }) {
+  console.log('gen:start');
   if (!(await rateLimit(env.DB, request, 15, 60))) return json({ error: 'Terlalu banyak permintaan — tunggu sebentar' }, 429);
   await ensureTables(env.DB);
   let body = {};
@@ -63,8 +66,10 @@ export async function onRequestPost({ request, env }) {
 
   // Rantai guru AI: OpenRouter → Gemini
   let gen = null;
+  console.log('gen:keys', !!env.OPENROUTER_KEY, !!env.GEMINI_KEY);
   if (env.OPENROUTER_KEY) gen = await tryOpenRouter(env.OPENROUTER_KEY, prompt);
   if (!gen && env.GEMINI_KEY) gen = await tryGemini(env.GEMINI_KEY, prompt);
+  console.log('gen:result', gen ? gen.model : 'null');
   if (!gen) return json({ error: 'Guru AI belum bisa dihubungi — coba lagi sebentar' }, 502);
 
   // Simpan jawaban pelatihan sebagai data latihan — Clincoo langsung mengingatnya.
