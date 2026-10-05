@@ -1,0 +1,8 @@
+name = "modela"
+compatibility_date = "2026-01-01"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "modela"
+database_id = "67a0b4e7-0b6b-4801-9e3a-8e333b8584da"

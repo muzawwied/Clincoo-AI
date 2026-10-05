@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" sizes="64x64" href="/assets/favicon.png">
+  <title>Model A — Model kecil cerdas, dilatih dari model besar</title>
+  <meta name="description" content="Model A: model kecil yang dilatih dari jawaban terkurasi model besar dan manusia. Playground pelatihan, chat, dan API siap integrasi.">
+  <meta name="theme-color" content="#ffffff">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    ::-webkit-scrollbar { display: none; } * { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-white text-gray-900 antialiased">
+
+  <!-- Header -->
+  <header class="max-w-5xl mx-auto px-5 pt-5 flex items-center justify-between">
+    <div class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center font-extrabold text-sm">A</div>
+      <div>
+        <p class="text-sm font-bold leading-tight">Model A</p>
+        <p class="text-[11px] text-gray-500 leading-tight">dari Clincoo</p>
+      </div>
+    </div>
+    <nav class="flex items-center gap-2">
+      <a href="/playground/" class="hidden sm:inline-flex items-center px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Playground</a>
+      <a href="/chat/" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-black hover:bg-gray-800 rounded-full transition-colors">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        Chat
+      </a>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <main class="max-w-5xl mx-auto px-5">
+    <section class="pt-16 sm:pt-24 pb-14 text-center">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 text-xs font-semibold text-gray-700 mb-5">
+        <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+        Playground pelatihan aktif
+      </span>
+      <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.08]">
+        Model kecil,<br>terlatih dari yang besar.
+      </h1>
+      <p class="mt-5 text-base sm:text-lg text-gray-500 max-w-xl mx-auto leading-relaxed">
+        Model A belajar dari jawaban terkurasi: dibuat manusia, dibantu model besar, dinilai ulang manusia. Ringan, jujur, dan siap diintegrasi lewat API.
+      </p>
+      <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <a href="/chat/" class="w-full sm:w-auto px-6 py-3 text-sm font-medium text-white bg-black hover:bg-gray-800 rounded-full transition-colors">Coba Chat</a>
+        <a href="/playground/" class="w-full sm:w-auto px-6 py-3 text-sm font-medium text-gray-800 bg-white border border-gray-200 hover:bg-gray-50 rounded-full transition-colors">Buka Playground</a>
+      </div>
+
+      <!-- Statistik live -->
+      <div id="stats" class="mt-12 flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
+        <div><p class="text-2xl font-extrabold" data-stat="examples">0</p><p class="text-[11px] text-gray-500 mt-0.5">data latihan</p></div>
+        <div><p class="text-2xl font-extrabold" data-stat="approved">0</p><p class="text-[11px] text-gray-500 mt-0.5">disetujui manusia</p></div>
+        <div><p class="text-2xl font-extrabold" data-stat="from_model">0</p><p class="text-[11px] text-gray-500 mt-0.5">dari model besar</p></div>
+        <div><p class="text-2xl font-extrabold" data-stat="chats">0</p><p class="text-[11px] text-gray-500 mt-0.5">percakapan</p></div>
+      </div>
+    </section>
+
+    <!-- Pipeline -->
+    <section class="py-12 border-t border-gray-100">
+      <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-center">Cara Model A dilatih</h2>
+      <div class="mt-8 grid sm:grid-cols-3 gap-4">
+        <div class="rounded-2xl border border-gray-100 p-5">
+          <div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center font-bold text-sm">1</div>
+          <p class="mt-3 text-sm font-semibold">Data jawaban dibuat</p>
+          <p class="mt-1.5 text-xs text-gray-500 leading-relaxed">Ditulis langsung oleh manusia, atau dimintakan jawaban dari model besar lewat Playground.</p>
+        </div>
+        <div class="rounded-2xl border border-gray-100 p-5">
+          <div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center font-bold text-sm">2</div>
+          <p class="mt-3 text-sm font-semibold">Manusia mengurasi</p>
+          <p class="mt-1.5 text-xs text-gray-500 leading-relaxed">Setiap jawaban dinilai: disetujui, diperbaiki, atau ditolak. Hanya yang bagus yang jadi pengetahuan Model A.</p>
+        </div>
+        <div class="rounded-2xl border border-gray-100 p-5">
+          <div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center font-bold text-sm">3</div>
+          <p class="mt-3 text-sm font-semibold">Model A menjawab</p>
+          <p class="mt-1.5 text-xs text-gray-500 leading-relaxed">Pertanyaan dicocokkan ke pengetahuannya. Kalau belum dilatih, dia jujur bilang belum tahu, bukan menebak.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- API -->
+    <section class="py-12 border-t border-gray-100">
+      <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-center">API siap integrasi</h2>
+      <p class="mt-2 text-sm text-gray-500 text-center max-w-md mx-auto">Kompatibel format OpenAI — tinggal ganti URL-nya.</p>
+      <div class="mt-6 max-w-2xl mx-auto rounded-xl bg-gray-900 overflow-hidden">
+        <div class="px-4 py-2.5 border-b border-white/10 flex items-center gap-1.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-red-400/80"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-yellow-400/80"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-green-400/80"></span>
+          <span class="ml-2 text-[11px] text-gray-400 font-medium">contoh integrasi</span>
+        </div>
+        <pre class="p-4 text-[11.5px] leading-relaxed text-gray-100 overflow-x-auto"><code>curl -X POST https://modela.clinqoo.biz.id/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "model-a",
+    "messages": [
+      { "role": "user", "content": "Apa itu Model A?" }
+    ]
+  }'</code></pre>
+      </div>
+      <p class="mt-4 text-center text-xs text-gray-400">Kalau Model A belum dilatih untuk sebuah pertanyaan, API menjawab jujur dengan finish_reason <span class="font-mono">no_match</span>.</p>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-10 border-t border-gray-100 text-center text-xs text-gray-400">
+      <p>Model A — proyek riset Clincoo. Model kecil, pengetahuan terkurasi, jawaban jujur.</p>
+      <div class="mt-3 flex items-center justify-center gap-4">
+        <a href="/playground/" class="hover:text-gray-600 transition-colors">Playground</a>
+        <a href="/chat/" class="hover:text-gray-600 transition-colors">Chat</a>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    fetch('/api/stats').then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+      if (!j) return;
+      document.querySelectorAll('[data-stat]').forEach(function (el) {
+        var v = j[el.getAttribute('data-stat')];
+        el.textContent = (v == null ? 0 : v).toLocaleString('id-ID');
+      });
+    }).catch(function () {});
+    if (window.lucide) lucide.createIcons();
+  </script>
+</body>
+</html>

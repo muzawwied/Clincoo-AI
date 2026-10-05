@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" sizes="64x64" href="/assets/favicon.png">
+  <title>Playground — Model A</title>
+  <meta name="description" content="Playground pelatihan Model A: susun data jawaban, minta bantuan model besar, kurasi dan nilai hasilnya.">
+  <meta name="theme-color" content="#ffffff">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    ::-webkit-scrollbar { display: none; } * { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-white text-gray-900 antialiased">
+
+  <main class="max-w-4xl mx-auto px-5 pt-5 pb-16">
+
+    <!-- Header -->
+    <header class="flex items-center justify-between gap-3 mb-6">
+      <div class="flex items-center gap-2.5">
+        <a href="/" class="w-9 h-9 rounded-full bg-white border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors" aria-label="Kembali">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+        </a>
+        <div>
+          <h1 class="text-sm font-bold leading-tight">Playground</h1>
+          <p class="text-[11px] text-gray-500 leading-tight">Pelatihan Model A</p>
+        </div>
+      </div>
+      <a href="/chat/" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-black hover:bg-gray-800 rounded-full transition-colors">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        Uji di Chat
+      </a>
+    </header>
+
+    <!-- Ringkasan -->
+    <div class="flex flex-wrap items-center justify-between gap-2.5 mb-4">
+      <div class="flex items-center gap-4">
+        <p class="text-sm font-medium text-gray-700"><span id="pg-total">0</span> data latihan</p>
+        <p class="text-xs text-gray-500"><span id="pg-approved">0</span> disetujui · <span id="pg-model">0</span> dari model besar</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" id="pg-import-open" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-full transition-colors">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5-5 5 5"></path><path stroke-linecap="round" d="M12 5v12"></path></svg>
+          Impor
+        </button>
+        <button type="button" id="pg-add-open" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-black hover:bg-gray-800 rounded-full transition-colors">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14M5 12h14"></path></svg>
+          Tambah Data
+        </button>
+      </div>
+    </div>
+
+    <!-- Pencarian -->
+    <div class="relative mb-4">
+      <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path stroke-linecap="round" d="m21 21-4.3-4.3"></path></svg>
+      <input id="pg-search" type="text" placeholder="Cari data latihan…" class="w-full pl-9 pr-3 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 transition-colors">
+    </div>
+
+    <!-- Tabel CRUD -->
+    <div id="pg-table-wrap" class="rounded-xl border border-gray-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50">
+          <tr class="text-[11px] uppercase tracking-wide text-gray-500">
+            <th class="text-left font-semibold px-4 py-2.5">Pertanyaan &amp; Jawaban</th>
+            <th class="text-left font-semibold px-4 py-2.5 hidden sm:table-cell">Sumber</th>
+            <th class="text-left font-semibold px-4 py-2.5">Nilai</th>
+            <th class="text-right font-semibold px-4 py-2.5">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="pg-tbody" class="divide-y divide-gray-200"></tbody>
+      </table>
+    </div>
+
+    <!-- Kosong -->
+    <div id="pg-empty" class="hidden py-14 flex flex-col items-center justify-center text-center">
+      <svg class="w-10 h-10 text-gray-300 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a5 5 0 0 0-6.4 6.4L3 18v3h3l5.3-5.3a5 5 0 0 0 6.4-6.4l-2.8 2.8-3-3 2.8-2.8z"></path></svg>
+      <p class="text-sm font-medium text-gray-600">Belum ada data latihan</p>
+      <p class="text-xs text-gray-400 mt-1 max-w-sm mx-auto">Tambahkan pasangan pertanyaan-jawaban secara manual, atau minta jawaban dari model besar lalu kurasi di sini.</p>
+      <button type="button" id="pg-empty-add" class="mt-4 px-5 py-2.5 text-xs font-medium text-white bg-black hover:bg-gray-800 rounded-full transition-colors">Tambah Data</button>
+    </div>
+
+    <!-- Pop-up: Tambah Data (radius xl) -->
+    <div id="pg-add-modal" class="hidden fixed inset-0 z-[80] items-center justify-center p-4" style="background: rgba(0,0,0,0.45);">
+      <div class="bg-white rounded-xl w-full max-w-md shadow-xl overflow-hidden max-h-[90dvh] overflow-y-auto">
+        <div class="px-5 pt-5 pb-3">
+          <h3 class="text-sm font-bold">Tambah Data Latihan</h3>
+          <p class="mt-0.5 text-xs text-gray-500">Tulis sendiri, atau minta bantuan model besar lalu kurasi.</p>
+        </div>
+        <form id="pg-add-form" class="px-5 pb-5 flex flex-col gap-3" autocomplete="off">
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1.5">Pertanyaan <span class="text-red-500">*</span></label>
+            <textarea id="pg-add-prompt" rows="2" placeholder="mis. Apa itu Model A?" class="w-full px-3.5 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 transition-colors" style="resize:vertical" required></textarea>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-xs font-medium text-gray-600">Jawaban <span class="text-red-500">*</span></label>
+              <button type="button" id="pg-gen-btn" class="text-[11px] font-semibold text-gray-600 hover:text-black transition-colors inline-flex items-center gap-1 disabled:opacity-50">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2v3m0 14v3M2 12h3m14 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1M7.7 16.3l-2.1 2.1"></path></svg>
+                Minta dari model besar
+              </button>
+            </div>
+            <textarea id="pg-add-answer" rows="4" placeholder="Jawaban terbaik untuk pertanyaan di atas" class="w-full px-3.5 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 transition-colors" style="resize:vertical" required></textarea>
+            <p id="pg-gen-hint" class="hidden mt-1.5 text-[11px] text-gray-400"></p>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1.5">Sumber</label>
+            <select id="pg-add-source" class="w-full px-3.5 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 transition-colors">
+              <option value="manusia">Manusia (ditulis langsung)</option>
+              <option value="model">Model besar (lalu dikurasi manusia)</option>
+            </select>
+          </div>
+          <div class="flex gap-2 pt-1">
+            <button type="button" id="pg-add-cancel" class="flex-1 py-2.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-full transition-colors">Batal</button>
+            <button type="submit" id="pg-add-btn" class="flex-1 py-2.5 text-xs font-medium text-white bg-black hover:bg-gray-800 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Simpan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Pop-up: Edit (radius xl) -->
+    <div id="pg-edit-modal" class="hidden fixed inset-0 z-[80] items-center justify-center p-4" style="background: rgba(0,0,0,0.45);">
+      <div class="bg-white rounded-xl w-full max-w-md shadow-xl overflow-hidden max-h-[90dvh] overflow-y-auto">
+        <div class="px-5 pt-5 pb-3">
+          <h3 class="text-sm font-bold">Edit Data Latihan</h3>
+          <p class="mt-0.5 text-xs text-gray-500">Perbaiki pertanyaan atau jawaban — perubahan langsung dipakai Model A.</p>
+        </div>
+        <form id="pg-edit-form" class="px-5 pb-5 flex flex-col gap-3" autocomplete="off">
+          <input type="hidden" id="pg-edit-id">
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1.5">Pertanyaan</label>
+            <textarea id="pg-edit-prompt" rows="2" class="w-full px-3.5 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 transition-colors" style="resize:vertical"></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1.5">Jawaban</label>
+            <textarea id="pg-edit-answer" rows="4" class="w-full px-3.5 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 transition-colors" style="resize:vertical"></textarea>
+          </div>
+          <div class="flex gap-2 pt-1">
+            <button type="button" id="pg-edit-cancel" class="flex-1 py-2.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-full transition-colors">Batal</button>
+            <button type="submit" id="pg-edit-btn" class="flex-1 py-2.5 text-xs font-medium text-white bg-black hover:bg-gray-800 rounded-full transition-colors disabled:opacity-50">Simpan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Pop-up: Impor (radius xl) -->
+    <div id="pg-import-modal" class="hidden fixed inset-0 z-[80] items-center justify-center p-4" style="background: rgba(0,0,0,0.45);">
+      <div class="bg-white rounded-xl w-full max-w-sm shadow-xl overflow-hidden">
+        <div class="px-5 pt-5 pb-3">
+          <h3 class="text-sm font-bold">Impor Data Latihan</h3>
+          <p class="mt-0.5 text-xs text-gray-500">Format per baris: <span class="font-mono">pertanyaan | jawaban</span>. Duplikat otomatis dilewati.</p>
+        </div>
+        <div class="px-5 pb-5 flex flex-col gap-3">
+          <label for="pg-import-file" class="flex flex-col items-center justify-center gap-1.5 py-5 border border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-colors">
+            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg>
+            <span class="text-xs font-medium text-gray-600">Pilih file CSV / TXT</span>
+            <span id="pg-import-fname" class="hidden text-[11px] text-gray-500"></span>
+            <input id="pg-import-file" type="file" accept=".csv,.txt,text/csv,text/plain" class="hidden">
+          </label>
+          <textarea id="pg-import-list" rows="4" placeholder="atau tempel di sini, satu data per baris:&#10;pertanyaan | jawaban" class="w-full px-3 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 transition-colors" style="resize:vertical"></textarea>
+          <div class="flex gap-2 pt-1">
+            <button type="button" id="pg-import-cancel" class="flex-1 py-2.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-full transition-colors">Batal</button>
+            <button type="button" id="pg-import-btn" class="flex-1 py-2.5 text-xs font-medium text-white bg-black hover:bg-gray-800 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Impor Sekarang</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+  (function () {
+    var items = [];
+    var inited = false;
+
+    function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]; }); }
+    function openM(id) { var m = document.getElementById(id); m.classList.remove('hidden'); m.classList.add('flex'); }
+    function closeM(id) { var m = document.getElementById(id); m.classList.add('hidden'); m.classList.remove('flex'); }
+    function busy(btn, on) { if (!btn) return; if (on) { btn.disabled = true; btn.dataset.l = btn.innerHTML; btn.innerHTML = '…'; } else { btn.disabled = false; if (btn.dataset.l) btn.innerHTML = btn.dataset.l; } }
+    function toast(msg, ok) {
+      var t = document.getElementById('pg-toast');
+      if (!t) { t = document.createElement('div'); t.id = 'pg-toast'; document.body.appendChild(t); }
+      t.textContent = msg;
+      t.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-[90] px-4 py-2.5 rounded-full text-xs font-medium shadow-lg transition-opacity duration-300 ' + (ok ? 'bg-black text-white' : 'bg-gray-800 text-white');
+      t.style.opacity = '1';
+      clearTimeout(window._pgToastT); window._pgToastT = setTimeout(function () { t.style.opacity = '0'; }, 2800);
+    }
+    function api(path, method, body) {
+      return fetch(path, { method: method || 'GET', headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined })
+        .then(function (r) { return r.ok ? r.json() : r.json().catch(function () { return {}; }).then(function (j) { return Promise.reject({ status: r.status, error: j.error || '' }); }); });
+    }
+
+    function render() {
+      document.getElementById('pg-total').textContent = String(items._total || 0);
+      document.getElementById('pg-approved').textContent = String(items._approved || 0);
+      document.getElementById('pg-model').textContent = String(items._from_model || 0);
+      var tbody = document.getElementById('pg-tbody');
+      var wrap = document.getElementById('pg-table-wrap');
+      var empty = document.getElementById('pg-empty');
+      if (!items.length) { wrap.classList.add('hidden'); empty.classList.remove('hidden'); return; }
+      empty.classList.add('hidden'); wrap.classList.remove('hidden');
+      var q = String(document.getElementById('pg-search').value || '').trim().toLowerCase();
+      var rows = items.filter(function (it) { return !q || (it.prompt || '').toLowerCase().indexOf(q) !== -1 || (it.answer || '').toLowerCase().indexOf(q) !== -1; });
+      if (!rows.length) { tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-xs text-gray-400">Tidak ada data cocok.</td></tr>'; return; }
+      var srcBadge = function (s) { return s === 'model'
+        ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[10px] font-semibold"><svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2v3m0 14v3M2 12h3m14 0h3"></path></svg>model besar</span>'
+        : '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[10px] font-semibold">manusia</span>'; };
+      var rateHtml = function (r, id) {
+        var up = r === 1, down = r === -1;
+        return '<div class="flex items-center gap-1">'
+          + '<button type="button" data-rate="1" data-id="' + id + '" title="Setujui" class="w-7 h-7 flex items-center justify-center rounded-full transition-colors ' + (up ? 'bg-green-50 text-green-600' : 'text-gray-300 hover:text-green-600 hover:bg-gray-50') + '"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 22l-4-4V6h4m0 16h10a2 2 0 0 0 2-2v-6l-4-8H7v16"></path><path d="M11 10h2v6h-2z"></path></svg></button>'
+          + '<button type="button" data-rate="-1" data-id="' + id + '" title="Tolak" class="w-7 h-7 flex items-center justify-center rounded-full transition-colors ' + (down ? 'bg-red-50 text-red-500' : 'text-gray-300 hover:text-red-500 hover:bg-gray-50') + '"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 2l4 4v12h-4m0-16H7a2 2 0 0 0-2 2v6l4 8h10V6"></path><path d="M13 14h-2V8h2z"></path></svg></button>'
+          + '</div>';
+      };
+      tbody.innerHTML = rows.map(function (it) {
+        return '<tr' + (it.rating === -1 ? ' style="opacity:.5"' : '') + '>'
+          + '<td class="px-4 py-3"><p class="text-sm font-medium leading-snug">' + esc(it.prompt) + '</p><p class="text-xs text-gray-500 leading-relaxed mt-1 line-clamp-2" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">' + esc(it.answer) + '</p></td>'
+          + '<td class="px-4 py-3 hidden sm:table-cell">' + srcBadge(it.source) + '</td>'
+          + '<td class="px-4 py-3">' + rateHtml(it.rating, it.id) + '</td>'
+          + '<td class="px-4 py-3"><div class="flex items-center justify-end gap-1">'
+          + '<button type="button" data-edit="' + it.id + '" title="Edit" class="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-800 hover:bg-gray-100 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"></path></svg></button>'
+          + '<button type="button" data-del="' + it.id + '" title="Hapus" class="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-red-600 hover:bg-gray-100 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path></svg></button>'
+          + '</div></td></tr>';
+      }).join('');
+    }
+
+    function load() {
+      api('/api/data').then(function (j) {
+        items = j.items || [];
+        items._total = j.total; items._approved = j.approved; items._from_model = j.from_model;
+        render();
+      }).catch(function () { toast('Gagal memuat data', false); });
+    }
+
+    function init() {
+      if (inited) { load(); return; }
+      inited = true;
+
+      document.getElementById('pg-add-open').addEventListener('click', function () {
+        document.getElementById('pg-add-form').reset();
+        document.getElementById('pg-gen-hint').classList.add('hidden');
+        openM('pg-add-modal');
+      });
+      document.getElementById('pg-empty-add').addEventListener('click', function () { document.getElementById('pg-add-open').click(); });
+      document.getElementById('pg-add-cancel').addEventListener('click', function () { closeM('pg-add-modal'); });
+      document.getElementById('pg-add-modal').addEventListener('click', function (ev) { if (ev.target === this) closeM('pg-add-modal'); });
+
+      // Minta jawaban dari model besar (server-side, kunci tidak pernah ke browser)
+      document.getElementById('pg-gen-btn').addEventListener('click', function () {
+        var prompt = String(document.getElementById('pg-add-prompt').value || '').trim();
+        if (!prompt) { toast('Tulis pertanyaannya dulu', false); return; }
+        var btn = document.getElementById('pg-gen-btn');
+        var hint = document.getElementById('pg-gen-hint');
+        busy(btn, true);
+        hint.textContent = 'Model besar sedang menjawab…';
+        hint.classList.remove('hidden');
+        api('/api/generate', 'POST', { prompt: prompt }).then(function (j) {
+          document.getElementById('pg-add-answer').value = j.answer || '';
+          document.getElementById('pg-add-source').value = 'model';
+          hint.textContent = 'Jawaban dari model besar — baca & kurasi dulu sebelum simpan.';
+          hint.classList.remove('hidden');
+        }).catch(function (e) {
+          hint.classList.add('hidden');
+          toast((e && e.error) || 'Gagal meminta jawaban', false);
+        }).finally(function () { busy(btn, false); });
+      });
+
+      document.getElementById('pg-add-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var btn = document.getElementById('pg-add-btn');
+        busy(btn, true);
+        api('/api/data', 'POST', {
+          prompt: document.getElementById('pg-add-prompt').value,
+          answer: document.getElementById('pg-add-answer').value,
+          source: document.getElementById('pg-add-source').value
+        }).then(function (res) {
+          if (res.duplicate) toast('Pertanyaan serupa sudah ada di data latihan', false);
+          else { toast('Data latihan ditambahkan', true); closeM('pg-add-modal'); load(); }
+        }).catch(function (e) { toast((e && e.error) || 'Gagal menyimpan', false); })
+          .finally(function () { busy(btn, false); });
+      });
+
+      // Impor
+      document.getElementById('pg-import-open').addEventListener('click', function () {
+        document.getElementById('pg-import-list').value = '';
+        document.getElementById('pg-import-fname').classList.add('hidden');
+        document.getElementById('pg-import-file').value = '';
+        openM('pg-import-modal');
+      });
+      document.getElementById('pg-import-cancel').addEventListener('click', function () { closeM('pg-import-modal'); });
+      document.getElementById('pg-import-modal').addEventListener('click', function (ev) { if (ev.target === this) closeM('pg-import-modal'); });
+      document.getElementById('pg-import-file').addEventListener('change', function () {
+        var f = this.files && this.files[0];
+        if (!f) return;
+        if (f.size > 2 * 1024 * 1024) { toast('File terlalu besar (maks 2MB)', false); this.value = ''; return; }
+        var reader = new FileReader();
+        reader.onload = function () { document.getElementById('pg-import-list').value = String(reader.result || '').trim(); var el = document.getElementById('pg-import-fname'); el.textContent = f.name; el.classList.remove('hidden'); };
+        reader.readAsText(f);
+      });
+      document.getElementById('pg-import-btn').addEventListener('click', function () {
+        var raw = String(document.getElementById('pg-import-list').value || '').trim();
+        if (!raw) { toast('Pilih file atau tempel datanya dulu', false); return; }
+        var btn = this; busy(btn, true);
+        // parse "pertanyaan | jawaban" per baris
+        var ok = 0, fail = 0, chain = Promise.resolve();
+        raw.split(/\n+/).forEach(function (line) {
+          var parts = line.split('|');
+          if (parts.length < 2) { fail++; return; }
+          var p = parts[0].trim(), a = parts.slice(1).join('|').trim();
+          if (!p || !a) { fail++; return; }
+          chain = chain.then(function () {
+            return api('/api/data', 'POST', { prompt: p, answer: a, source: 'manusia' }).then(function (r) { if (r.added) ok++; }).catch(function () { fail++; });
+          });
+        });
+        chain.then(function () {
+          toast(ok + ' data diimpor' + (fail ? ' · ' + fail + ' baris dilewati' : ''), ok > 0);
+          if (ok > 0) { closeM('pg-import-modal'); load(); }
+        }).finally(function () { busy(btn, false); });
+      });
+
+      document.getElementById('pg-search').addEventListener('input', render);
+
+      // Aksi tabel (delegasi)
+      document.getElementById('pg-tbody').addEventListener('click', function (ev) {
+        var rateBtn = ev.target.closest('[data-rate]');
+        if (rateBtn) {
+          api('/api/data', 'PATCH', { id: Number(rateBtn.getAttribute('data-id')), rating: Number(rateBtn.getAttribute('data-rate')) })
+            .then(function () { load(); }).catch(function (e) { toast((e && e.error) || 'Gagal', false); });
+          return;
+        }
+        var editBtn = ev.target.closest('[data-edit]');
+        if (editBtn) {
+          var id = Number(editBtn.getAttribute('data-edit'));
+          var it = items.filter(function (x) { return x.id === id; })[0];
+          if (!it) return;
+          document.getElementById('pg-edit-id').value = id;
+          document.getElementById('pg-edit-prompt').value = it.prompt;
+          document.getElementById('pg-edit-answer').value = it.answer;
+          openM('pg-edit-modal');
+          return;
+        }
+        var delBtn = ev.target.closest('[data-del]');
+        if (delBtn) {
+          delBtn.disabled = true;
+          api('/api/data', 'DELETE', { id: Number(delBtn.getAttribute('data-del')) })
+            .then(function () { toast('Data dihapus', true); load(); })
+            .catch(function (e) { toast((e && e.error) || 'Gagal menghapus', false); });
+        }
+      });
+
+      document.getElementById('pg-edit-cancel').addEventListener('click', function () { closeM('pg-edit-modal'); });
+      document.getElementById('pg-edit-modal').addEventListener('click', function (ev) { if (ev.target === this) closeM('pg-edit-modal'); });
+      document.getElementById('pg-edit-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var btn = document.getElementById('pg-edit-btn');
+        busy(btn, true);
+        api('/api/data', 'PATCH', {
+          id: Number(document.getElementById('pg-edit-id').value),
+          prompt: document.getElementById('pg-edit-prompt').value,
+          answer: document.getElementById('pg-edit-answer').value
+        }).then(function () { toast('Data diperbarui', true); closeM('pg-edit-modal'); load(); })
+          .catch(function (e) { toast((e && e.error) || 'Gagal menyimpan', false); })
+          .finally(function () { busy(btn, false); });
+      });
+
+      document.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Escape') ['pg-add-modal', 'pg-edit-modal', 'pg-import-modal'].forEach(closeM);
+      });
+
+      load();
+    }
+    document.addEventListener('DOMContentLoaded', init);
+  })();
+  </script>
+</body>
+</html>
