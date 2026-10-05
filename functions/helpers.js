@@ -133,7 +133,7 @@ export const GURU_SYSTEM = 'Kamu adalah guru AI yang melatih Clincoo, asisten ch
 
 export async function askGuruAI(env, prompt) {
   if (env.OPENROUTER_KEY) {
-    const models = ['openai/gpt-6-luna-pro', 'openai/gpt-6.1-sol-pro', 'z-ai/glm-5.3-flash'];
+    const models = ['google/gemma-4-26b-a4b-it:free', 'qwen/qwen3.8-27b:free', 'nvidia/nemotron-3-super-120b-a12b:free'];
     for (const model of models) {
       try {
         const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {

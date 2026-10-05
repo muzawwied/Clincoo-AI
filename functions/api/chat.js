@@ -35,7 +35,6 @@ export async function onRequestPost({ request, env }) {
       break;
     }
   }
-  const tutor = body.tutor === true;
   if (!message) return json({ error: 'Pesan kosong' }, 422);
 
   const rows = await env.DB.prepare(
@@ -54,17 +53,17 @@ export async function onRequestPost({ request, env }) {
     source = 'smalltalk';
     matchedPrompt = '(sapaan bawaan)';
   } else {
-  // Mode Latih AI aktif: Clincoo "chatan" langsung dengan guru AI
-  // (Gemini/OpenRouter) dan jawabannya otomatis disimpan sebagai ingatan baru.
-  // Tanpa guru (mode mati): jawab dari ingatan yang sudah dilatih.
-  const match = tutor ? null : bestMatch(message, examples);
+  // Guru AI bekerja di LATAR BELAKANG (tanpa toggle publik): kalau ingatan
+  // belum tahu, Clincoo diam-diam "chatan" dengan guru AI (Gemini/OpenRouter),
+  // jawabannya langsung disimpan sebagai ingatan baru — seperti AI pada umumnya.
+  const match = bestMatch(message, examples);
   if (match && match.score >= MATCH_THRESHOLD) {
     reply = match.example.answer;
     matchedId = match.example.id;
     score = Math.round(match.score * 100) / 100;
     matchedPrompt = match.example.prompt;
     source = match.example.source;
-  } else if (tutor) {
+  } else {
     const gen = await askGuruAI(env, message);
     if (gen) {
       reply = gen.answer;
@@ -75,20 +74,9 @@ export async function onRequestPost({ request, env }) {
       const saved = await saveTraining(env.DB, message, gen.answer);
       matchedId = saved && saved.id ? saved.id : null;
     } else {
-      // Guru AI tidak bisa dihubungi → coba ingatan yang ada, jujur kalau tidak ada.
-      const m2 = bestMatch(message, examples);
-      if (m2 && m2.score >= MATCH_THRESHOLD) {
-        reply = m2.example.answer;
-        matchedId = m2.example.id;
-        score = Math.round(m2.score * 100) / 100;
-        matchedPrompt = m2.example.prompt;
-        source = m2.example.source;
-      } else {
-        reply = FALLBACK;
-      }
+      // Guru AI tidak bisa dihubungi → jujur mengaku belum bisa.
+      reply = FALLBACK;
     }
-  } else {
-    reply = FALLBACK;
   }
   }
 
