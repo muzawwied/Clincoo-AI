@@ -113,8 +113,14 @@ export function bestMatch(question, examples) {
   const selfScore = bm25(qTokens, qTokens.length);
   if (selfScore <= 0) return null;
   let best = null;
+  const qSet = new Set(qTokens);
   for (const ex of examples) {
     const docTokens = tokenize(ex.prompt);
+    // Jaring kecocokan palsu: minimal setengah token pertanyaan harus
+    // benar-benar ada di prompt contoh, kalau tidak dianggap tidak cocok.
+    let hits = 0;
+    for (const t of qSet) if (docTokens.indexOf(t) !== -1) hits++;
+    if (qSet.size && hits / qSet.size < 0.5) continue;
     let score = bm25(docTokens, docTokens.length);
     if (score <= 0) continue;
     score = score / selfScore; // rasio 0..~1
