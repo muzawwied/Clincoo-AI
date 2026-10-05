@@ -30,4 +30,4 @@ Cloudflare Pages project `modela` (repo GitHub `muzawwied/Model-A`, branch `main
 D1: binding `DB` (database `modela`). Environment secret: `MODEL_BIG_KEY` (kunci
 model besar, hanya server-side).
 
-Domain: modela.clinqoo.biz.id
+Domain: www.clinqoo.biz.id

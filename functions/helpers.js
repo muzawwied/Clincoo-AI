@@ -82,36 +82,48 @@ export function normalizePrompt(text) {
 }
 
 // ---- Mesin "Model A": pencocokan BM25-lite atas kumpulan data latihan ----
+// Skor dokumen dinormalisasi dengan skor pertanyaan terhadap dirinya sendiri
+// (self-score), jadi pertanyaan pendek maupun panjang dinilai adil.
 export function bestMatch(question, examples) {
   const qTokens = tokenize(question);
   if (!qTokens.length) return null;
   const k1 = 1.4, b = 0.72;
   const N = examples.length || 1;
+  const avgLen = 8; // panjang prompt latihan rata-rata; cukup stabil untuk skoring
   // Document frequency tiap token query atas seluruh prompt latihan
   const df = {};
   for (const ex of examples) {
     const seen = new Set(tokenize(ex.prompt));
     for (const t of qTokens) if (seen.has(t)) df[t] = (df[t] || 0) + 1;
   }
+  const tfCount = (tokens, t) => tokens.reduce((n, d) => n + (d === t ? 1 : 0), 0);
+  const bm25 = (docTokens, docLenRaw) => {
+    const docLen = docLenRaw || 1;
+    let s = 0;
+    for (const t of qTokens) {
+      if (!df[t]) continue;
+      const tf = tfCount(docTokens, t);
+      if (!tf) continue;
+      const idf = Math.log(1 + (N - df[t] + 0.5) / (df[t] + 0.5));
+      s += idf * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * docLen / avgLen));
+    }
+    return s;
+  };
+  // Skor referensi: pertanyaan vs dirinya sendiri (maksimal teoretis)
+  const selfScore = bm25(qTokens, qTokens.length);
+  if (selfScore <= 0) return null;
   let best = null;
   for (const ex of examples) {
     const docTokens = tokenize(ex.prompt);
-    const docLen = docTokens.length || 1;
-    const avgLen = 8; // panjang prompt manusia rata-rata; cukup stabil untuk skoring
-    let score = 0;
-    for (const t of qTokens) {
-      if (!df[t]) continue;
-      const tf = docTokens.filter(d => d === t).length;
-      if (!tf) continue;
-      const idf = Math.log(1 + (N - df[t] + 0.5) / (df[t] + 0.5));
-      score += idf * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * docLen / avgLen));
-    }
+    let score = bm25(docTokens, docTokens.length);
+    if (score <= 0) continue;
+    score = score / selfScore; // rasio 0..~1
     // Bonus: contoh yang disetujui manusia lebih dipercaya
     if (ex.rating === 1) score *= 1.15;
-    if (score > 0 && (!best || score > best.score)) best = { example: ex, score: score };
+    if (!best || score > best.score) best = { example: ex, score: score };
   }
   return best;
 }
 
-// Ambang kemiripan: di bawah ini Model A jujur mengaku belum dilatih.
-export const MATCH_THRESHOLD = 1.35;
+// Ambang rasio kemiripan: di bawah ini Model A jujur mengaku belum dilatih.
+export const MATCH_THRESHOLD = 0.62;
