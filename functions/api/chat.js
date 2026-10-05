@@ -22,7 +22,19 @@ export async function onRequestPost({ request, env }) {
   await ensureTables(env.DB);
   let body = {};
   try { body = await request.json(); } catch (e) {}
-  const message = String(body.message || '').trim().slice(0, 2000);
+  const messagesIn = Array.isArray(body.messages) ? body.messages : null;
+  let message = String(body.message || '').trim().slice(0, 2000);
+  if (!message && messagesIn) {
+    // Protokol halaman chat Clincoo: ambil teks pesan user terakhir dari array messages
+    for (let i = messagesIn.length - 1; i >= 0; i--) {
+      const m = messagesIn[i];
+      if (!m || m.role !== 'user') continue;
+      const c = m.content;
+      const t = typeof c === 'string' ? c : (Array.isArray(c) ? c.filter(p => p && p.type === 'text' && typeof p.text === 'string').map(p => p.text).join(' ') : '');
+      message = t.trim().slice(0, 2000);
+      break;
+    }
+  }
   if (!message) return json({ error: 'Pesan kosong' }, 422);
 
   const rows = await env.DB.prepare(
@@ -52,6 +64,10 @@ export async function onRequestPost({ request, env }) {
     'INSERT INTO chat_log (question, reply, matched_id, score) VALUES (?, ?, ?, ?)'
   ).bind(message.slice(0, 500), reply.slice(0, 500), matchedId, score).run();
 
+  if (messagesIn) {
+    // Respons format halaman chat Clincoo: {text, session_id} (halaman membaca .text)
+    return json({ text: reply, session_id: body.session_id || undefined, trained: matchedId != null, match: matchedPrompt ? { prompt: matchedPrompt, score: score, source: source } : null });
+  }
   return json({
     id: log.meta ? log.meta.last_row_id : null,
     reply: reply,
