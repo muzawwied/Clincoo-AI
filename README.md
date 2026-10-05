@@ -1,4 +1,4 @@
-# Clincoo — model kecil terlatih dari model besar
+# Clincoo — melatih model baru
 
 Situs untuk proyek *distillation* Clincoo: Clincoo, model kecil yang pengetahuannya
 disusun dari jawaban terkurasi (manusia + model besar).
