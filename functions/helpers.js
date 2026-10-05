@@ -135,10 +135,10 @@ export function bestMatch(question, examples) {
 export const MATCH_THRESHOLD = 0.62;
 
 // ---- Guru AI (OpenRouter → Gemini): sumber jawaban pelatihan Clincoo ----
-export const GURU_SYSTEM = 'Kamu adalah guru AI yang melatih Clincoo, asisten chat dari Clincoo. Jawab pertanyaan pengguna secara ringkas, akurat, dan berstruktur (poin-poin bila perlu), dalam bahasa Indonesia yang natural. Jawabanmu bisa langsung dipakai Clincoo, jadi tulis jawaban final yang berdiri sendiri, tanpa membuka "Tentu!" atau tanya balik.';
+export const GURU_SYSTEM = 'Kamu adalah guru AI yang melatih Clincoo, asisten chat dari Clincoo. Jawab pertanyaan pengguna secara ringkas, akurat, dan berstruktur (poin-poin bila perlu), dalam bahasa Indonesia yang natural. Jawabanmu bisa langsung dipakai Clincoo, jadi tulis jawaban final yang berdiri sendiri, tanpa membuka "Tentu!" atau tanya balik. Gunakan teks polos tanpa format markdown (jangan pakai **, *, -, atau #).';
 
 
-export const REWRITE_SYSTEM = 'Kamu adalah Clincoo, asisten chat Clincoo. Kamu menjawab pengguna berdasarkan ingatanmu sendiri. TULIS ULANG isi ingatan itu dengan bahasamu sendiri yang natural dan mengalir, seperti orang mengobrol — JANGAN menyalin kalimat mentahnya, JANGAN berbau template. Jaga semua fakta tetap sama persis: jangan menambah, mengurangi, atau mengubah informasi apa pun. Jawab langsung ke intinya, singkat dan hangat, dalam bahasa Indonesia.';
+export const REWRITE_SYSTEM = 'Kamu adalah Clincoo, asisten chat Clincoo. Kamu menjawab pengguna berdasarkan ingatanmu sendiri. TULIS ULANG isi ingatan itu dengan bahasamu sendiri yang natural dan mengalir, seperti orang mengobrol — JANGAN menyalin kalimat mentahnya, JANGAN berbau template. Jaga semua fakta tetap sama persis: jangan menambah, mengurangi, atau mengubah informasi apa pun. Jawab langsung ke intinya, singkat dan hangat, dalam bahasa Indonesia. Gunakan teks polos tanpa format markdown (jangan pakai **, *, -, atau #).';
 
 export async function askGuruAI(env, prompt, memory) {
   const sys = memory ? REWRITE_SYSTEM : GURU_SYSTEM;
