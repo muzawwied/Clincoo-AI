@@ -22,7 +22,7 @@ export async function onRequestPost({ request, env }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
       body: JSON.stringify({
-        model: 'gpt-6-luna-pro',
+        model: 'clincoo/auto',
         messages: [
           { role: 'system', content: 'Kamu adalah guru penyusun data latihan untuk model kecil bernama Model A. Jawab pertanyaan pengguna secara ringkas, akurat, dan berstruktur (poin-poin bila perlu), dalam bahasa Indonesia yang natural. Jawabanmu akan dikurasi manusia sebelum dipakai melatih model kecil.' },
           { role: 'user', content: prompt }
