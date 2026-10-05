@@ -4,8 +4,8 @@ Situs untuk proyek *distillation* Clincoo: Model A, model kecil yang pengetahuan
 disusun dari jawaban terkurasi (manusia + model besar).
 
 ## Halaman
-- `/` — landing: penjelasan pipeline + statistik live
-- `/playground/` — pelatihan: tambah data (manual atau minta jawaban model besar), kurasi (setujui/tolak), edit, impor CSV/TXT
+- `/` — app chat Clincoo langsung (splash screen → chat + sidebar riwayat)
+- `/playground/` — pelatihan: tambah data manual, minta jawaban guru AI (OpenRouter → Gemini, otomatis tersimpan), kurasi (setujui/tolak), edit, impor CSV/TXT
 - `/chat/` — redirect 301 ke `/` (jalur lama)
 
 ## API
