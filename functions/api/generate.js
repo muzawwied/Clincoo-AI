@@ -12,6 +12,7 @@ async function tryOpenRouter(key, prompt) {
   const models = ['openai/gpt-6-luna-pro', 'openai/gpt-6.1-sol-pro', 'z-ai/glm-5.3-flash'];
   for (const model of models) {
     try {
+      
       const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key, 'HTTP-Referer': 'https://www.clinqoo.biz.id', 'X-Title': 'Clincoo' },
@@ -27,13 +28,14 @@ async function tryOpenRouter(key, prompt) {
       console.log('gen:or', model, res.status);
       const text = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
       if (res.ok && text) return { answer: String(text).trim(), model: model.split('/').pop() + ' (OpenRouter)' };
-    } catch (e) { /* coba model berikutnya */ }
+      console.log('gen:or-fail', model, res.status);
+    } catch (e) { console.log('gen:or-err', model, e && e.message); }
   }
   return null;
 }
 
 async function tryGemini(key, prompt) {
-  const models = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+  const models = ['gemini-3.6-flash', 'gemini-3-flash-preview'];
   for (const model of models) {
     try {
       const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(key), {
