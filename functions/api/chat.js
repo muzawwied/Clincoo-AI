@@ -8,11 +8,13 @@ const FALLBACK = 'Aku belum dilatih untuk pertanyaan itu, jadi aku tidak akan me
 
 // Identitas asisten: pertanyaan "kamu siapa / nama kamu apa" dijawab langsung,
 // tidak bergantung data latihan.
-const IDENTITY_ANSWER = 'Aku Clincoo, asisten AI dari Clincoo. Pengetahuanku disusun dari jawaban terkurasi manusia dan model besar, jadi aku hanya menjawab yang benar-benar aku tahu. Kalau ada yang belum aku ketahui, aku akan bilang jujur.';
+const IDENTITY_ANSWER = 'Aku Clincoo AI, asisten superagent dari Clincoo. Aku terus belajar dari setiap obrolan — pengetahuanku tumbuh dari pelajaran terkurasi dan yang kucari sendiri, jadi aku hanya menjawab yang benar-benar kutahu dan jujur kalau belum tahu.';
 function isIdentityQuestion(message) {
   const q = String(message || '').toLowerCase();
   if (/who are you|perkenalkan diri|perkenalkan dirimu/.test(q)) return true;
   return /(siapa|nama|sebut).{0,24}(kamu|namamu|nama kamu|kau|anda|lo|lu)(\b|$)/.test(q)
+    || /(pakai|pake) (model|mesin|ai|apa)/.test(q)
+    || /model (apa|siapa|punya siapa)/.test(q)
     || /^(kamu|kaau|u) (ini )?(siapa|apa)/.test(q)
     || /^(siapa|apa) (sih )?(kamu|namamu)/.test(q);
 }
