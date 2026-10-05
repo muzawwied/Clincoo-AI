@@ -139,9 +139,35 @@ export async function onRequestOptions() {
   });
 }
 
-// Streamable HTTP stateless: GET untuk SSE stream tidak didukung (405).
-export async function onRequestGet() {
-  return new Response(null, { status: 405, headers: { 'Allow': 'POST, OPTIONS' } });
+// Streamable HTTP: GET dengan token valid membuka stream SSE keep-alive
+// (sebagian client MCP membuka stream ini setelah initialize — tanpa ini
+// mereka menganggap server mati / "token ga aktif"). Tanpa token: 401.
+export async function onRequestGet({ request, env }) {
+  const token = env.MCP_TOKEN || '';
+  const urlToken = new URL(request.url).searchParams.get('token') || '';
+  const auth = request.headers.get('Authorization') || '';
+  if (!token || (auth !== 'Bearer ' + token && urlToken !== token)) {
+    return json({ jsonrpc: '2.0', id: null, error: { code: -32001, message: 'Unauthorized' } }, 401);
+  }
+  const encoder = new TextEncoder();
+  let timer = null;
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(encoder.encode(': keep-alive\n\n'));
+      timer = setInterval(() => {
+        try { controller.enqueue(encoder.encode(': ping\n\n')); } catch (e) { clearInterval(timer); }
+      }, 15000);
+    },
+    cancel() { if (timer) clearInterval(timer); }
+  });
+  return new Response(stream, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Access-Control-Allow-Origin': '*'
+    }
+  });
 }
 export async function onRequestDelete() {
   return new Response(null, { status: 204 });
