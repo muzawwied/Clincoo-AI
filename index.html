@@ -2,130 +2,394 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <link rel="icon" type="image/png" sizes="64x64" href="/assets/favicon.png">
-  <title>Model A — Model kecil cerdas, dilatih dari model besar</title>
-  <meta name="description" content="Model A: model kecil yang dilatih dari jawaban terkurasi model besar dan manusia. Playground pelatihan, chat, dan API siap integrasi.">
+  <title>Clincoo — Chat</title>
+  <meta name="description" content="Ngobrol dengan Clincoo — asisten AI yang dilatih dari data terkurasi manusia dan model besar.">
   <meta name="theme-color" content="#ffffff">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
   <style>
     body { font-family: 'Inter', sans-serif; }
-    ::-webkit-scrollbar { display: none; } * { -ms-overflow-style: none; scrollbar-width: none; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 4px; }
+    .shimmer-chat { display: inline-flex; align-items: center; gap: 6px; color: #9ca3af; font-size: 14px; }
+    .shimmer-chat span { background: linear-gradient(90deg, #b9b9b9 25%, #737373 50%, #b9b9b9 75%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 1.6s infinite; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .md-content p { margin: 0 0 0.65em; } .md-content p:last-child { margin-bottom: 0; }
+    .md-content ul { margin: 0.4em 0 0.65em; padding-left: 1.2em; list-style: disc; }
+    .md-content li { margin: 0.15em 0; }
+    .md-content strong { font-weight: 700; }
+    .md-content pre { background: #f3f4f6; border-radius: 12px; padding: 12px 14px; overflow-x: auto; font-size: 13px; margin: 0.5em 0; }
+    .md-content code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .md-content :not(pre) > code { background: #f3f4f6; border-radius: 6px; padding: 1px 5px; font-size: 0.9em; }
+    .fade-in { animation: fadeIn 0.25s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    /* Splash screen */
+    #splash { position: fixed; inset: 0; z-index: 100; background: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; transition: opacity 0.5s ease; }
+    #splash.gone { opacity: 0; pointer-events: none; }
+    .splash-logo { width: 72px; height: 72px; border-radius: 20px; object-fit: cover; box-shadow: 0 8px 30px rgba(0,0,0,0.12); animation: splashPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+    @keyframes splashPop { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .splash-name { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; color: #111; animation: splashFadeUp 0.6s 0.25s ease both; }
+    .splash-sub { font-size: 12px; font-weight: 500; color: #9ca3af; animation: splashFadeUp 0.6s 0.45s ease both; }
+    @keyframes splashFadeUp { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+    .splash-bar { width: 120px; height: 3px; border-radius: 3px; background: #f3f4f6; overflow: hidden; animation: splashFadeUp 0.6s 0.55s ease both; }
+    .splash-bar i { display: block; height: 100%; width: 40%; background: #111; border-radius: 3px; animation: splashSlide 1.1s ease-in-out infinite; }
+    @keyframes splashSlide { 0% { transform: translateX(-100%); } 100% { transform: translateX(320%); } }
+
+    /* Sidebar app chat */
+    #sidebar { position: fixed; top: 0; bottom: 0; left: 0; width: 288px; z-index: 45; background: #ffffff; border-right: 1px solid #f3f4f6; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; }
+    body.sb-open #sidebar { transform: none; }
+    #main-wrap { transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    @media (min-width: 768px) { body.sb-open #main-wrap { margin-left: 288px; } }
+    #sidebar-overlay { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,0.45); opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    @media (max-width: 767.98px) { body.sb-open #sidebar-overlay { opacity: 1; pointer-events: auto; } }
+    .sb-item { position: relative; }
+    .sb-item .sb-del { opacity: 0; }
+    .sb-item:hover .sb-del, .sb-item.active .sb-del { opacity: 1; }
   </style>
 </head>
-<body class="bg-white text-gray-900 antialiased">
+<body class="h-[100dvh] flex overflow-hidden bg-white selection:bg-gray-200">
 
-  <!-- Header -->
-  <header class="max-w-5xl mx-auto px-5 pt-5 flex items-center justify-between">
-    <div class="flex items-center gap-2.5">
-      <div class="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center font-extrabold text-sm">A</div>
-      <div>
-        <p class="text-sm font-bold leading-tight">Model A</p>
-        <p class="text-[11px] text-gray-500 leading-tight">dari Clincoo</p>
+  <!-- Splash screen -->
+  <div id="splash">
+    <img src="/assets/logo-clincoo.png" alt="Clincoo" class="splash-logo">
+    <p class="splash-name">Clincoo</p>
+    <p class="splash-sub">asisten AI dari Model A</p>
+    <div class="splash-bar"><i></i></div>
+  </div>
+
+  <!-- Sidebar -->
+  <aside id="sidebar" aria-label="Menu chat">
+    <div class="p-4 pb-2 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <img src="/assets/logo-clincoo.png" alt="Clincoo" class="w-8 h-8 rounded-lg">
+        <div class="leading-tight">
+          <p class="text-sm font-bold">Clincoo</p>
+          <p class="text-[10px] text-gray-400 font-medium">asisten AI</p>
+        </div>
       </div>
+      <button type="button" onclick="toggleSidebar()" class="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-black hover:bg-gray-100 transition-colors md:hidden" aria-label="Tutup menu">
+        <i class="ph ph-x text-lg"></i>
+      </button>
     </div>
-    <nav class="flex items-center gap-2">
-      <a href="/playground/" class="hidden sm:inline-flex items-center px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Playground</a>
-      <a href="/chat/" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-black hover:bg-gray-800 rounded-full transition-colors">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        Chat
+
+    <div class="px-4 pb-2">
+      <button type="button" onclick="newChat()" class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-medium text-white bg-black hover:bg-gray-800 rounded-full transition-colors">
+        <i class="ph-bold ph-plus text-sm"></i> Chat baru
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto px-3 pb-2 custom-scrollbar" id="sb-history-wrap">
+      <p class="px-2 pt-2 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Riwayat</p>
+      <div id="sb-history" class="flex flex-col gap-0.5"></div>
+      <p id="sb-empty" class="px-2 py-3 text-xs text-gray-400 hidden">Belum ada percakapan.</p>
+    </div>
+
+    <div class="border-t border-gray-100 p-3 flex flex-col gap-0.5">
+      <a href="/playground/" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+        <i class="ph ph-database text-lg text-gray-500"></i> Playground
       </a>
-    </nav>
-  </header>
+      <p class="px-3 pt-2 text-[10px] text-gray-400">Clincoo · dilatih dari data terkurasi</p>
+    </div>
+  </aside>
+  <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
-  <!-- Hero -->
-  <main class="max-w-5xl mx-auto px-5">
-    <section class="pt-16 sm:pt-24 pb-14 text-center">
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 text-xs font-semibold text-gray-700 mb-5">
-        <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-        Playground pelatihan aktif
-      </span>
-      <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.08]">
-        Model kecil,<br>terlatih dari yang besar.
-      </h1>
-      <p class="mt-5 text-base sm:text-lg text-gray-500 max-w-xl mx-auto leading-relaxed">
-        Model A belajar dari jawaban terkurasi: dibuat manusia, dibantu model besar, dinilai ulang manusia. Ringan, jujur, dan siap diintegrasi lewat API.
-      </p>
-      <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-        <a href="/chat/" class="w-full sm:w-auto px-6 py-3 text-sm font-medium text-white bg-black hover:bg-gray-800 rounded-full transition-colors">Coba Chat</a>
-        <a href="/playground/" class="w-full sm:w-auto px-6 py-3 text-sm font-medium text-gray-800 bg-white border border-gray-200 hover:bg-gray-50 rounded-full transition-colors">Buka Playground</a>
-      </div>
+  <!-- Area utama -->
+  <div id="main-wrap" class="flex-1 flex flex-col min-w-0 relative">
 
-      <!-- Statistik live -->
-      <div id="stats" class="mt-12 flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
-        <div><p class="text-2xl font-extrabold" data-stat="examples">0</p><p class="text-[11px] text-gray-500 mt-0.5">data latihan</p></div>
-        <div><p class="text-2xl font-extrabold" data-stat="approved">0</p><p class="text-[11px] text-gray-500 mt-0.5">disetujui manusia</p></div>
-        <div><p class="text-2xl font-extrabold" data-stat="from_model">0</p><p class="text-[11px] text-gray-500 mt-0.5">dari model besar</p></div>
-        <div><p class="text-2xl font-extrabold" data-stat="chats">0</p><p class="text-[11px] text-gray-500 mt-0.5">percakapan</p></div>
-      </div>
-    </section>
-
-    <!-- Pipeline -->
-    <section class="py-12 border-t border-gray-100">
-      <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-center">Cara Model A dilatih</h2>
-      <div class="mt-8 grid sm:grid-cols-3 gap-4">
-        <div class="rounded-2xl border border-gray-100 p-5">
-          <div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center font-bold text-sm">1</div>
-          <p class="mt-3 text-sm font-semibold">Data jawaban dibuat</p>
-          <p class="mt-1.5 text-xs text-gray-500 leading-relaxed">Ditulis langsung oleh manusia, atau dimintakan jawaban dari model besar lewat Playground.</p>
-        </div>
-        <div class="rounded-2xl border border-gray-100 p-5">
-          <div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center font-bold text-sm">2</div>
-          <p class="mt-3 text-sm font-semibold">Manusia mengurasi</p>
-          <p class="mt-1.5 text-xs text-gray-500 leading-relaxed">Setiap jawaban dinilai: disetujui, diperbaiki, atau ditolak. Hanya yang bagus yang jadi pengetahuan Model A.</p>
-        </div>
-        <div class="rounded-2xl border border-gray-100 p-5">
-          <div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center font-bold text-sm">3</div>
-          <p class="mt-3 text-sm font-semibold">Model A menjawab</p>
-          <p class="mt-1.5 text-xs text-gray-500 leading-relaxed">Pertanyaan dicocokkan ke pengetahuannya. Kalau belum dilatih, dia jujur bilang belum tahu, bukan menebak.</p>
+    <!-- Header melayang gaya chat Clincoo -->
+    <header class="fixed top-0 left-0 right-0 z-30 px-3 pt-3 pointer-events-none flex justify-between items-center">
+      <button type="button" onclick="toggleSidebar()" class="pointer-events-auto flex-shrink-0 flex items-center justify-center text-[#222222] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-gray-100 hover:text-black hover:bg-gray-100 transition-all rounded-full w-11 h-11" aria-label="Menu">
+        <i class="ph ph-list text-xl"></i>
+      </button>
+      <div class="pointer-events-auto inline-flex items-center gap-2 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.10)] border border-gray-100/80 rounded-full pl-2 pr-3.5 h-11">
+        <img src="/assets/logo-clincoo.png" alt="Clincoo" class="w-7 h-7 rounded-full">
+        <div class="leading-tight">
+          <p class="text-[13px] font-bold text-gray-900">Clincoo</p>
+          <p class="text-[10px] text-gray-400 font-medium flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>online</p>
         </div>
       </div>
-    </section>
+    </header>
 
-    <!-- API -->
-    <section class="py-12 border-t border-gray-100">
-      <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-center">API siap integrasi</h2>
-      <p class="mt-2 text-sm text-gray-500 text-center max-w-md mx-auto">Kompatibel format OpenAI — tinggal ganti URL-nya.</p>
-      <div class="mt-6 max-w-2xl mx-auto rounded-xl bg-gray-900 overflow-hidden">
-        <div class="px-4 py-2.5 border-b border-white/10 flex items-center gap-1.5">
-          <span class="w-2.5 h-2.5 rounded-full bg-red-400/80"></span>
-          <span class="w-2.5 h-2.5 rounded-full bg-yellow-400/80"></span>
-          <span class="w-2.5 h-2.5 rounded-full bg-green-400/80"></span>
-          <span class="ml-2 text-[11px] text-gray-400 font-medium">contoh integrasi</span>
-        </div>
-        <pre class="p-4 text-[11.5px] leading-relaxed text-gray-100 overflow-x-auto"><code>curl -X POST https://www.clinqoo.biz.id/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "model-a",
-    "messages": [
-      { "role": "user", "content": "Apa itu Model A?" }
-    ]
-  }'</code></pre>
+    <!-- Pesan -->
+    <main id="chat-container" class="flex-1 overflow-y-auto px-4 pt-[80px] pb-40 space-y-4 w-full relative z-10">
+      <div id="welcome" class="h-full flex flex-col items-center justify-center text-center gap-3 py-16">
+        <img src="/assets/logo-clincoo.png" alt="Clincoo" class="w-14 h-14 rounded-2xl shadow-lg">
+        <h1 class="text-xl font-extrabold tracking-tight">Mau tanya apa hari ini?</h1>
+        <p class="text-sm text-gray-500 max-w-xs leading-relaxed">Aku Clincoo. Aku menjawab dari pengetahuan yang dikurasi manusia — kalau belum dilatih untuk sesuatu, aku bilang jujur.</p>
+        <div id="suggestion-chips" class="flex flex-wrap items-center justify-center gap-2 mt-2 max-w-sm"></div>
       </div>
-      <p class="mt-4 text-center text-xs text-gray-400">Kalau Model A belum dilatih untuk sebuah pertanyaan, API menjawab jujur dengan finish_reason <span class="font-mono">no_match</span>.</p>
-    </section>
+    </main>
 
-    <!-- Footer -->
-    <footer class="py-10 border-t border-gray-100 text-center text-xs text-gray-400">
-      <p>Model A — proyek riset Clincoo. Model kecil, pengetahuan terkurasi, jawaban jujur.</p>
-      <div class="mt-3 flex items-center justify-center gap-4">
-        <a href="/playground/" class="hover:text-gray-600 transition-colors">Playground</a>
-        <a href="/chat/" class="hover:text-gray-600 transition-colors">Chat</a>
+    <!-- Composer gaya chat Clincoo -->
+    <footer class="fixed bottom-0 left-0 right-0 w-full bg-transparent px-4 py-4 z-20 pointer-events-none flex flex-col justify-end">
+      <div class="w-full bg-white rounded-[26px] shadow-[0_4px_24px_rgba(0,0,0,0.10)] p-4 sm:p-5 transition-all text-left border border-gray-100/80 pointer-events-auto max-w-4xl mx-auto">
+        <textarea
+          id="prompt-input"
+          rows="1"
+          placeholder="Tanya apa saja..."
+          class="w-full resize-none border-0 bg-transparent p-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-[15px] sm:text-base md:text-lg leading-relaxed max-h-[140px] overflow-hidden custom-scrollbar"
+        ></textarea>
+        <div class="flex items-center justify-between pt-2">
+          <p class="text-[11px] text-gray-400 pl-1 select-none">dijawab dari data latihan terkurasi</p>
+          <button id="submit-btn" class="w-10 h-10 bg-black text-white rounded-full hover:bg-gray-800 transition-all duration-200 active:scale-90 flex items-center justify-center cursor-pointer shadow-sm hover:shadow-md shrink-0 disabled:opacity-40" aria-label="Kirim">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+          </button>
+        </div>
       </div>
     </footer>
-  </main>
+  </div>
 
   <script>
-    fetch('/api/stats').then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
-      if (!j) return;
-      document.querySelectorAll('[data-stat]').forEach(function (el) {
-        var v = j[el.getAttribute('data-stat')];
-        el.textContent = (v == null ? 0 : v).toLocaleString('id-ID');
+  (function () {
+    // ---- Splash ----
+    var splashEl = document.getElementById('splash');
+    setTimeout(function () { splashEl.classList.add('gone'); }, 1400);
+    setTimeout(function () { if (splashEl.parentNode) splashEl.parentNode.removeChild(splashEl); }, 2000);
+
+    // ---- Sidebar ----
+    if (window.innerWidth >= 768) document.body.classList.add('sb-open');
+    window.toggleSidebar = function () { document.body.classList.toggle('sb-open'); };
+
+    var input = document.getElementById('prompt-input');
+    var container = document.getElementById('chat-container');
+    var welcome = document.getElementById('welcome');
+    var submitBtn = document.getElementById('submit-btn');
+    var sending = false;
+
+    // ---- Penyimpanan riwayat (localStorage) ----
+    var STORE_KEY = 'clincoo_chats';
+    function loadStore() { try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch (e) { return []; } }
+    function saveStore(s) { try { localStorage.setItem(STORE_KEY, JSON.stringify(s.slice(0, 50))); } catch (e) {} }
+    var store = loadStore();
+    var currentId = null;
+
+    function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]; }); }
+
+    function md(text) {
+      var t = esc(text);
+      t = t.replace(/```([\s\S]*?)```/g, function (_, code) { return '<pre><code>' + code.trim() + '</code></pre>'; });
+      t = t.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+      t = t.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+      t = t.replace(/(^|\n)((?:[-•] .+(?:\n|$))+)/g, function (m, pre, block) {
+        var items = block.trim().split(/\n/).map(function (l) { return '<li>' + l.replace(/^[-•] /, '') + '</li>'; }).join('');
+        return pre + '<ul>' + items + '</ul>';
       });
-    }).catch(function () {});
-    if (window.lucide) lucide.createIcons();
+      return t.split(/\n{2,}/).map(function (p) { return '<p>' + p.replace(/\n/g, '<br>') + '</p>'; }).join('');
+    }
+
+    function scrollToBottom() { container.scrollTop = container.scrollHeight; }
+    function clearWelcome() { if (welcome) { welcome.remove(); welcome = null; } }
+
+    function addUser(text) {
+      clearWelcome();
+      var el = document.createElement('div');
+      el.className = 'flex flex-col items-end max-w-[85%] w-full pointer-events-auto ml-auto fade-in';
+      el.innerHTML = '<div class="bg-gray-100 text-black px-4 py-2.5 rounded-2xl rounded-br-sm text-[15px] leading-relaxed inline-block w-fit md-content" style="word-break:break-word;overflow-wrap:break-word;">' + md(text) + '</div>';
+      container.appendChild(el);
+      scrollToBottom();
+    }
+
+    function addThinking() {
+      var el = document.createElement('div');
+      el.className = 'flex w-full fade-in';
+      el.innerHTML = '<div class="text-[15px]"><div class="shimmer-chat"><span>Clincoo sedang mencocokkan pertanyaan ke data latihannya…</span></div></div>';
+      container.appendChild(el);
+      scrollToBottom();
+      return el;
+    }
+
+    function addAi(logId, reply, match) {
+      var el = document.createElement('div');
+      el.className = 'flex max-w-[95%] sm:max-w-[90%] w-full min-w-0 fade-in';
+      var matchNote = match
+        ? '<div class="mt-1.5 flex items-center gap-1.5 text-[11px] text-gray-400"><i class="ph ph-database text-[12px]"></i>cocok dengan data latihan' + (match.source === 'model' ? ' (sumber: model besar, dikurasi manusia)' : '') + '</div>'
+        : '';
+      el.innerHTML = '<div class="flex flex-col gap-2 pt-1 w-full min-w-0">'
+        + '<div class="text-black text-[15px] leading-normal break-words w-full md-content" style="word-break:break-word;overflow-wrap:break-word;">' + md(reply) + '</div>'
+        + matchNote
+        + '<div class="flex items-center gap-3 mt-1">'
+        + '<button type="button" class="copy-btn relative text-gray-400 hover:text-black transition p-1" title="Salin"><i class="ph ph-copy text-lg"></i></button>'
+        + '<button type="button" class="thumb-btn text-gray-400 hover:text-black transition p-1" data-rating="1" title="Jawaban bagus"><i class="ph ph-thumbs-up text-lg"></i></button>'
+        + '<button type="button" class="thumb-btn text-gray-400 hover:text-black transition p-1" data-rating="-1" title="Jawaban kurang"><i class="ph ph-thumbs-down text-lg"></i></button>'
+        + '</div></div>';
+      container.appendChild(el);
+      el.querySelector('.copy-btn').addEventListener('click', function () {
+        navigator.clipboard && navigator.clipboard.writeText(reply);
+        this.innerHTML = '<i class="ph ph-check text-lg"></i>';
+        var b = this; setTimeout(function () { b.innerHTML = '<i class="ph ph-copy text-lg"></i>'; }, 1500);
+      });
+      el.querySelectorAll('.thumb-btn').forEach(function (b) {
+        b.addEventListener('click', function () {
+          el.querySelectorAll('.thumb-btn').forEach(function (x) { x.classList.remove('text-black'); });
+          this.classList.add('text-black');
+          if (logId) fetch('/api/chat', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: logId, rating: Number(this.getAttribute('data-rating')) }) }).catch(function () {});
+        });
+      });
+      scrollToBottom();
+    }
+
+    // ---- Riwayat & sesi chat ----
+    function renderSidebar() {
+      var wrap = document.getElementById('sb-history');
+      var emptyEl = document.getElementById('sb-empty');
+      var list = store.slice().sort(function (a, b) { return (b.updated || 0) - (a.updated || 0); });
+      emptyEl.classList.toggle('hidden', list.length > 0);
+      wrap.innerHTML = '';
+      list.forEach(function (c) {
+        var item = document.createElement('div');
+        item.className = 'sb-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer transition-colors hover:bg-gray-50' + (c.id === currentId ? ' active bg-gray-100' : '');
+        item.innerHTML = '<i class="ph ph-chat-circle-dots text-lg ' + (c.id === currentId ? 'text-black' : 'text-gray-400') + ' shrink-0"></i>'
+          + '<span class="text-sm truncate flex-1 ' + (c.id === currentId ? 'font-medium' : 'text-gray-700') + '">' + esc(c.title || 'Chat baru') + '</span>'
+          + '<button type="button" class="sb-del text-gray-300 hover:text-red-500 transition-colors p-1 shrink-0" title="Hapus"><i class="ph ph-trash text-base"></i></button>';
+        item.addEventListener('click', function (ev) {
+          if (ev.target.closest('.sb-del')) {
+            ev.stopPropagation();
+            store = store.filter(function (x) { return x.id !== c.id; });
+            saveStore(store);
+            if (currentId === c.id) newChat(true);
+            else renderSidebar();
+            return;
+          }
+          loadChat(c.id);
+          if (window.innerWidth < 768) document.body.classList.remove('sb-open');
+        });
+        wrap.appendChild(item);
+      });
+    }
+
+    function persist(msgs) {
+      if (!currentId) return;
+      var c = store.filter(function (x) { return x.id === currentId; })[0];
+      if (c) { c.messages = msgs; c.updated = Date.now(); saveStore(store); renderSidebar(); }
+    }
+
+    function getMsgs() {
+      var out = [];
+      container.querySelectorAll('[data-msg]').forEach(function (el) {
+        out.push({ role: el.getAttribute('data-msg'), text: el.getAttribute('data-raw') || '' });
+      });
+      return out;
+    }
+
+    // tandai pesan agar bisa disimpan & dimuat ulang
+    function tagMsg(el, role, raw) { el.setAttribute('data-msg', role); el.setAttribute('data-raw', raw); }
+
+    window.newChat = function (silent) {
+      currentId = null;
+      container.innerHTML = '';
+      welcome = null;
+      var w = document.createElement('div');
+      w.id = 'welcome';
+      w.className = 'h-full flex flex-col items-center justify-center text-center gap-3 py-16';
+      w.innerHTML = '<img src="/assets/logo-clincoo.png" alt="Clincoo" class="w-14 h-14 rounded-2xl shadow-lg">'
+        + '<h1 class="text-xl font-extrabold tracking-tight">Mau tanya apa hari ini?</h1>'
+        + '<p class="text-sm text-gray-500 max-w-xs leading-relaxed">Aku Clincoo. Aku menjawab dari pengetahuan yang dikurasi manusia — kalau belum dilatih untuk sesuatu, aku bilang jujur.</p>'
+        + '<div id="suggestion-chips" class="flex flex-wrap items-center justify-center gap-2 mt-2 max-w-sm"></div>';
+      container.appendChild(w);
+      welcome = w;
+      renderSidebar();
+      loadChips();
+      if (window.innerWidth < 768) document.body.classList.remove('sb-open');
+      input.focus();
+    };
+
+    function loadChat(id) {
+      var c = store.filter(function (x) { return x.id === id; })[0];
+      if (!c) return;
+      currentId = id;
+      container.innerHTML = '';
+      welcome = null;
+      (c.messages || []).forEach(function (m) {
+        if (m.role === 'user') addUser(m.text);
+        else addAi(null, m.text, null);
+        tagMsg(container.lastElementChild, m.role, m.text);
+      });
+      renderSidebar();
+      scrollToBottom();
+    }
+
+    // ---- Kirim ----
+    function send() {
+      var text = String(input.value || '').trim();
+      if (!text || sending) return;
+      sending = true;
+      submitBtn.disabled = true;
+      input.value = '';
+      autoGrow();
+      clearWelcome();
+
+      if (!currentId) {
+        currentId = 'c' + Date.now();
+        store.push({ id: currentId, title: text.length > 42 ? text.slice(0, 42) + '…' : text, updated: Date.now(), messages: [] });
+      }
+
+      addUser(text);
+      tagMsg(container.lastElementChild, 'user', text);
+
+      var think = addThinking();
+      fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text })
+      }).then(function (r) {
+        return r.ok ? r.json() : r.json().catch(function () { return {}; }).then(function (j) { return Promise.reject(j.error || 'Gagal mengirim'); });
+      }).then(function (j) {
+        think.remove();
+        addAi(j.id, j.reply, j.match);
+        var lastAi = container.children[container.children.length - 1];
+        tagMsg(lastAi, 'ai', j.reply);
+        persist(getMsgs());
+      }).catch(function (err) {
+        think.remove();
+        addAi(null, 'Maaf, ada kendala teknis saat menjawab (' + esc(err || '') + '). Coba kirim ulang pesanmu.', null);
+        var lastAi = container.children[container.children.length - 1];
+        tagMsg(lastAi, 'ai', 'Maaf, ada kendala teknis saat menjawab. Coba kirim ulang pesanmu.');
+      }).finally(function () {
+        sending = false;
+        submitBtn.disabled = false;
+        input.focus();
+      });
+    }
+
+    function autoGrow() {
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 140) + 'px';
+    }
+
+    submitBtn.addEventListener('click', send);
+    input.addEventListener('input', autoGrow);
+    input.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); send(); }
+    });
+
+    // ---- Saran pertanyaan ----
+    function loadChips() {
+      fetch('/api/data').then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+        var chipWrap = document.getElementById('suggestion-chips');
+        if (!chipWrap || !j || !j.items || !j.items.length) return;
+        var picks = j.items.filter(function (it) { return it.rating === 1; }).slice(0, 3);
+        if (!picks.length) picks = j.items.slice(0, 3);
+        picks.forEach(function (it) {
+          var b = document.createElement('button');
+          b.className = 'px-3.5 py-1.5 rounded-full border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors';
+          b.textContent = it.prompt.length > 40 ? it.prompt.slice(0, 40) + '…' : it.prompt;
+          b.addEventListener('click', function () { input.value = it.prompt; send(); });
+          chipWrap.appendChild(b);
+        });
+      }).catch(function () {});
+    }
+
+    renderSidebar();
+    loadChips();
+  })();
   </script>
 </body>
 </html>
