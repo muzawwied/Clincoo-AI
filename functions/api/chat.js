@@ -8,7 +8,7 @@ const FALLBACK = 'Aku belum dilatih untuk pertanyaan itu, jadi aku tidak akan me
 
 // Identitas asisten: pertanyaan "kamu siapa / nama kamu apa" dijawab langsung,
 // tidak bergantung data latihan.
-const IDENTITY_ANSWER = 'Aku Clincoo AI, asisten superagent dari Clincoo. Aku terus belajar dari setiap obrolan — pengetahuanku tumbuh dari pelajaran terkurasi dan yang kucari sendiri, jadi aku hanya menjawab yang benar-benar kutahu dan jujur kalau belum tahu.';
+const IDENTITY_ANSWER = 'Aku Clincoo AI, asisten superagent dari Clincoo. Aku bukan chatbot pasif — aku rekan yang suka menjelaskan dengan detail, contoh, dan analogi sampai kamu benar-benar paham. Aku terus belajar dari setiap obrolan: pengetahuanku tumbuh dari pelajaran terkurasi dan yang kucari sendiri, jadi makin sering kita ngobrol makin paham aku soal kebutuhanmu. Kalau ada hal yang belum kutahu, aku jujur bilang dan langsung kupelajari saat itu juga. Silakan tanya apa saja, dari pengetahuan umum sampai cuma obrolan santai.';
 function isIdentityQuestion(message) {
   const q = String(message || '').toLowerCase();
   if (/who are you|perkenalkan diri|perkenalkan dirimu/.test(q)) return true;
