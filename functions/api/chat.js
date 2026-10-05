@@ -1,6 +1,6 @@
 // Clincoo — mesin obrolan: pertanyaan dicocokkan ke data latihan (retrieval + skor),
 // di bawah ambang kemiripan Clincoo jujur mengaku belum dilatih.
-import { json, corsPreflight, ensureTables, rateLimit, bestMatch, MATCH_THRESHOLD } from '../helpers.js';
+import { json, corsPreflight, ensureTables, rateLimit, bestMatch, MATCH_THRESHOLD, askGuruAI, saveTraining, smallTalkReply } from '../helpers.js';
 
 export async function onRequestOptions() { return corsPreflight(); }
 
@@ -35,6 +35,7 @@ export async function onRequestPost({ request, env }) {
       break;
     }
   }
+  const tutor = body.tutor === true;
   if (!message) return json({ error: 'Pesan kosong' }, 422);
 
   const rows = await env.DB.prepare(
@@ -43,10 +44,15 @@ export async function onRequestPost({ request, env }) {
   const examples = rows && rows.results ? rows.results : [];
 
   let reply, matchedId = null, score = 0, matchedPrompt = null, source = null;
+  let tutored = false, tutorModel = null;
   if (isIdentityQuestion(message)) {
     reply = IDENTITY_ANSWER;
     source = 'identitas';
     matchedPrompt = '(identitas bawaan)';
+  } else if (smallTalkReply(message)) {
+    reply = smallTalkReply(message);
+    source = 'smalltalk';
+    matchedPrompt = '(sapaan bawaan)';
   } else {
   const match = bestMatch(message, examples);
   if (match && match.score >= MATCH_THRESHOLD) {
@@ -55,6 +61,20 @@ export async function onRequestPost({ request, env }) {
     score = Math.round(match.score * 100) / 100;
     matchedPrompt = match.example.prompt;
     source = match.example.source;
+  } else if (tutor) {
+    // Belum menguasai → tanya guru AI, jawabannya otomatis jadi ingatan baru.
+    const gen = await askGuruAI(env, message);
+    if (gen) {
+      reply = gen.answer;
+      tutored = true;
+      tutorModel = gen.model;
+      source = 'model';
+      matchedPrompt = '(baru dilatih oleh guru AI)';
+      const saved = await saveTraining(env.DB, message, gen.answer);
+      matchedId = saved && saved.id ? saved.id : null;
+    } else {
+      reply = FALLBACK;
+    }
   } else {
     reply = FALLBACK;
   }
@@ -66,12 +86,14 @@ export async function onRequestPost({ request, env }) {
 
   if (messagesIn) {
     // Respons format halaman chat Clincoo: {text, session_id} (halaman membaca .text)
-    return json({ text: reply, session_id: body.session_id || undefined, trained: matchedId != null, match: matchedPrompt ? { prompt: matchedPrompt, score: score, source: source } : null });
+    return json({ text: reply, session_id: body.session_id || undefined, trained: matchedId != null || tutored, tutored: tutored, model: tutorModel, match: matchedPrompt ? { prompt: matchedPrompt, score: score, source: source } : null });
   }
   return json({
     id: log.meta ? log.meta.last_row_id : null,
     reply: reply,
-    trained: matchedId != null,
+    trained: matchedId != null || tutored,
+    tutored: tutored,
+    model: tutorModel,
     match: matchedPrompt ? { prompt: matchedPrompt, score: score, source: source } : null
   });
 }

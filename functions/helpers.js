@@ -127,3 +127,70 @@ export function bestMatch(question, examples) {
 
 // Ambang rasio kemiripan: di bawah ini Clincoo jujur mengaku belum dilatih.
 export const MATCH_THRESHOLD = 0.62;
+
+// ---- Guru AI (OpenRouter → Gemini): sumber jawaban pelatihan Clincoo ----
+export const GURU_SYSTEM = 'Kamu adalah guru AI yang melatih Clincoo, asisten chat dari Clincoo. Jawab pertanyaan pengguna secara ringkas, akurat, dan berstruktur (poin-poin bila perlu), dalam bahasa Indonesia yang natural. Jawabanmu bisa langsung dipakai Clincoo, jadi tulis jawaban final yang berdiri sendiri, tanpa membuka "Tentu!" atau tanya balik.';
+
+export async function askGuruAI(env, prompt) {
+  if (env.OPENROUTER_KEY) {
+    const models = ['openai/gpt-6-luna-pro', 'openai/gpt-6.1-sol-pro', 'z-ai/glm-5.3-flash'];
+    for (const model of models) {
+      try {
+        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + env.OPENROUTER_KEY, 'HTTP-Referer': 'https://www.clinqoo.biz.id', 'X-Title': 'Clincoo' },
+          body: JSON.stringify({ model: model, messages: [ { role: 'system', content: GURU_SYSTEM }, { role: 'user', content: prompt } ] })
+        });
+        const data = await res.json().catch(() => ({}));
+        const text = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+        if (res.ok && text) return { answer: String(text).trim(), model: model.split('/').pop() + ' (OpenRouter)' };
+        console.log('guru:or-fail', model, res.status);
+      } catch (e) { console.log('guru:or-err', model, e && e.message); }
+    }
+  }
+  if (env.GEMINI_KEY) {
+    const models = ['gemini-3.6-flash', 'gemini-3-flash-preview'];
+    for (const model of models) {
+      try {
+        const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(env.GEMINI_KEY), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ systemInstruction: { parts: [{ text: GURU_SYSTEM }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }] })
+        });
+        const data = await res.json().catch(() => ({}));
+        const parts = data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts;
+        const text = parts && parts.map(p => p.text || '').join('');
+        if (res.ok && text) return { answer: String(text).trim(), model: model + ' (Gemini)' };
+        console.log('guru:gem-fail', model, res.status);
+      } catch (e) { console.log('guru:gem-err', model, e && e.message); }
+    }
+  }
+  return null;
+}
+
+// Simpan jawaban guru sebagai data latihan (duplikat diperbarui, bukan diduplikasi).
+export async function saveTraining(db, prompt, answer) {
+  const norm = normalizePrompt(prompt);
+  const dup = await db.prepare('SELECT id FROM examples WHERE prompt_norm = ?').bind(norm).first();
+  if (dup) {
+    await db.prepare("UPDATE examples SET answer = ?, source = 'model', rating = 0, updated_at = datetime('now') WHERE id = ?").bind(answer.slice(0, 8000), dup.id).run();
+    return { saved: 1, updated: 1, id: dup.id };
+  }
+  const r = await db.prepare("INSERT INTO examples (prompt, prompt_norm, answer, source) VALUES (?, ?, ?, 'model')").bind(prompt, norm, answer.slice(0, 8000)).run();
+  return { saved: 1, id: r.meta ? r.meta.last_row_id : null };
+}
+
+// ---- Smalltalk lokal: sapaan & basa-basi dijawab langsung tanpa API ----
+export function smallTalkReply(message) {
+  const m = String(message || '').toLowerCase().trim().replace(/[!.?]+$/g, '');
+  if (/^(halo|hallo|hai|hi|hei|hey|hello|assalamualaikum|salam)\b/.test(m)) {
+    const jam = new Date(Date.now() + 7 * 3600 * 1000).getUTCHours(); // WIB
+    const waktu = jam < 11 ? 'pagi' : jam < 15 ? 'siang' : jam < 18 ? 'sore' : 'malam';
+    return 'Halo! Senang bertemu denganmu. Ada yang ingin kamu tanyakan atau diskusikan hari ini? Kalau ada topik yang belum aku kuasai, aktifkan mode *Latih AI* di bawah kolom chat, nanti aku belajar dari guru AI-nya langsung.';
+  }
+  if (/\b(selamat (pagi|siang|sore|malam))\b/.test(m)) return 'Salam kenal! Ada yang bisa kubantu hari ini? Aktifkan *Latih AI* kalau kamu mau aku belajar topik baru saat mengobrol.';
+  if (/^(apa kabar|gimana kabarmu|kabarmu|how are you)\b/.test(m)) return 'Kabarku baik, terima kasih sudah bertanya! Ada topik yang mau kamu bahas atau ajari ke aku?';
+  if (/\b(terima kasih|makasih|thanks|thank you|terimakasih)\b/.test(m)) return 'Sama-sama! Kalau ada lagi yang ingin ditanyakan atau diajarkan, aku siap.';
+  if (/\b(sampai jumpa|sampai jumpa lagi|bye|dadah|dah|selamat tinggal)\b/.test(m)) return 'Sampai jumpa! Semoga harimu menyenangkan. Aku di sini kalau nanti butuh bantuan lagi.';
+  return null;
+}
