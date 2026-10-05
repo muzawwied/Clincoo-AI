@@ -184,6 +184,26 @@ export async function askGuruAI(env, prompt, memory) {
     } catch (e) { console.log('guru:cf-err', e && e.message); }
   }
 
+  // 1b) Server Ollama pribadi (glm-4.7-flash) lewat tunnel Cloudflare — provider
+  // alternatif milik sendiri: dicoba kalau lapisan Cloudflare sibuk/gagal.
+  try {
+    const ollamaBase = env.OLLAMA_ENDPOINT || 'https://must-acknowledge-cold-ranging.trycloudflare.com';
+    const r = await fetch(ollamaBase + '/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'glm-4.7-flash',
+        messages: [ { role: 'system', content: sys }, { role: 'user', content: user } ],
+        stream: false,
+        keep_alive: '24h'
+      }),
+      signal: AbortSignal.timeout(25000)
+    });
+    const d = await r.json().catch(() => ({}));
+    const text = d && d.message && d.message.content;
+    if (r.ok && text && String(text).trim()) return { answer: String(text).trim(), model: 'glm-4.7-flash (server pribadi)' };
+    console.log('guru:ollama-miss', r.status, String(d && d.error || '').slice(0, 120));
+  } catch (e) { console.log('guru:ollama-err', e && e.message); }
   if (env.OPENROUTER_KEY) {
     const models = ['google/gemma-4-26b-a4b-it:free', 'qwen/qwen3.8-27b:free', 'nvidia/nemotron-3-super-120b-a12b:free'];
     for (const model of models) {
