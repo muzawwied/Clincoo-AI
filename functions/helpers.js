@@ -147,7 +147,16 @@ export async function askGuruAI(env, prompt, memory) {
   const user = memory
     ? 'PERTANYAAN PENGGUNA: ' + prompt + '\n\nINGATANMU (jawaban yang tersimpan):\n' + memory
     : prompt;
-  // 0) Guru besar: GPT-6 Astra via jembatan token tersimpan — khusus pengetahuan baru (latihan)
+  // 0) MODEL UTAMA: GPT-OSS-120B di Cloudflare Workers AI milik sendiri (120B, gratis, tanpa kunci)
+  if (env.AI) {
+    try {
+      const out = await env.AI.run('@cf/openai/gpt-oss-120b', { messages: [ { role: 'system', content: sys }, { role: 'user', content: user } ] });
+      const text = out && (out.response || (out.choices && out.choices[0] && out.choices[0].message && out.choices[0].message.content));
+      if (text && String(text).trim()) return { answer: String(text).trim(), model: 'Vy-1.1 Core (120B utama)' };
+      console.log('guru:main-empty');
+    } catch (e) { console.log('guru:main-err', e && e.message); }
+  }
+  // 0b) Guru besar cadangan: GPT-6 Astra via jembatan token tersimpan — khusus pengetahuan baru (latihan)
   if (!memory) {
     try {
       const r = await fetch('https://superagent-a0dcee6e.base44.app/functions/astraGuru', {
