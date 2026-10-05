@@ -6,6 +6,17 @@ export async function onRequestOptions() { return corsPreflight(); }
 
 const FALLBACK = 'Aku belum dilatih untuk pertanyaan itu, jadi aku tidak akan menebak. Ajari aku lewat Playground di situs ini: tulis pertanyaan beserta jawaban terbaiknya, dan aku akan bisa menjawabnya di chat ini.';
 
+// Identitas asisten: pertanyaan "kamu siapa / nama kamu apa" dijawab langsung,
+// tidak bergantung data latihan.
+const IDENTITY_ANSWER = 'Aku Clincoo, asisten AI dari Clincoo. Aku dilatih lewat Model A: pengetahuanku disusun dari jawaban terkurasi manusia dan model besar, jadi aku hanya menjawab yang benar-benar aku tahu. Kalau ada yang belum aku ketahui, aku akan bilang jujur.';
+function isIdentityQuestion(message) {
+  const q = String(message || '').toLowerCase();
+  if (/who are you|perkenalkan diri|perkenalkan dirimu/.test(q)) return true;
+  return /(siapa|nama|sebut).{0,24}(kamu|namamu|nama kamu|kau|anda|lo|lu)(\b|$)/.test(q)
+    || /^(kamu|kaau|u) (ini )?(siapa|apa)/.test(q)
+    || /^(siapa|apa) (sih )?(kamu|namamu)/.test(q);
+}
+
 export async function onRequestPost({ request, env }) {
   if (!(await rateLimit(env.DB, request, 30, 60))) return json({ error: 'Terlalu banyak pesan — tunggu sebentar lagi' }, 429);
   await ensureTables(env.DB);
@@ -18,9 +29,14 @@ export async function onRequestPost({ request, env }) {
     'SELECT id, prompt, answer, source, rating FROM examples WHERE rating != -1 ORDER BY id DESC LIMIT 2000'
   ).all();
   const examples = rows && rows.results ? rows.results : [];
-  const match = bestMatch(message, examples);
 
   let reply, matchedId = null, score = 0, matchedPrompt = null, source = null;
+  if (isIdentityQuestion(message)) {
+    reply = IDENTITY_ANSWER;
+    source = 'identitas';
+    matchedPrompt = '(identitas bawaan)';
+  } else {
+  const match = bestMatch(message, examples);
   if (match && match.score >= MATCH_THRESHOLD) {
     reply = match.example.answer;
     matchedId = match.example.id;
@@ -29,6 +45,7 @@ export async function onRequestPost({ request, env }) {
     source = match.example.source;
   } else {
     reply = FALLBACK;
+  }
   }
 
   const log = await env.DB.prepare(
