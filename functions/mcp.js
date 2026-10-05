@@ -162,7 +162,10 @@ export async function onRequestPost({ request, env }) {
   const token = env.MCP_TOKEN || '';
   if (!token) return wrap(json({ error: 'Server MCP belum dikonfigurasi (MCP_TOKEN belum diset)' }, 503));
   const auth = request.headers.get('Authorization') || '';
-  if (auth !== 'Bearer ' + token) return wrap(json({ jsonrpc: '2.0', id: null, error: { code: -32001, message: 'Unauthorized: kirim header Authorization: Bearer <token>' } }, 401));
+  // Token boleh lewat header Bearer ATAU langsung di URL (?token=...) —
+  // jadi satu URL saja sudah membawa full izin (praktis untuk client MCP).
+  const urlToken = new URL(request.url).searchParams.get('token') || '';
+  if (auth !== 'Bearer ' + token && urlToken !== token) return wrap(json({ jsonrpc: '2.0', id: null, error: { code: -32001, message: 'Unauthorized: kirim header Authorization: Bearer <token> atau ?token=<token>' } }, 401));
 
   if (!(await rateLimit(env.DB, request, 120, 60))) return wrap(rpcError(null, -32000, 'Terlalu banyak permintaan — tunggu sebentar'));
   await ensureTables(env.DB);
