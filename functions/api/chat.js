@@ -8,15 +8,21 @@ const FALLBACK = 'Aku belum dilatih untuk pertanyaan itu, jadi aku tidak akan me
 
 // Identitas asisten: pertanyaan "kamu siapa / nama kamu apa" dijawab langsung,
 // tidak bergantung data latihan.
-const IDENTITY_ANSWER = 'Aku Clincoo AI, asisten superagent dari Clincoo, ditenagai Vy-1, model distilasi buatan Vylonium. Aku bukan chatbot pasif — aku rekan yang suka menjelaskan dengan detail, contoh, dan analogi sampai kamu benar-benar paham. Aku terus belajar dari setiap obrolan: pengetahuanku tumbuh dari pelajaran terkurasi dan yang kucari sendiri, jadi makin sering kita ngobrol makin paham aku soal kebutuhanmu. Kalau ada hal yang belum kutahu, aku jujur bilang dan langsung kupelajari saat itu juga. Silakan tanya apa saja, dari pengetahuan umum sampai cuma obrolan santai.';
+const MODEL_ANSWER = 'Aku Clincoo Vy-1.1, model AI distilasi buatan Vylonium yang menjadi otak Clincoo AI. Aku belajar terus dari setiap obrolan — pengetahuanku disuling dan disimpan secara efisien, jadi makin sering dipakai makin pinter dan makin paham kebutuhanmu. Ada yang bisa kubantu hari ini?';
+const IDENTITY_ANSWER = 'Aku Clincoo AI, asisten superagent dari Clincoo. Otakku Clincoo Vy-1.1, model distilasi buatan Vylonium. Aku bukan chatbot pasif — aku rekan yang suka menjelaskan dengan detail, contoh, dan analogi sampai kamu benar-benar paham. Aku terus belajar dari setiap obrolan: pengetahuanku tumbuh dari pelajaran terkurasi dan yang kucari sendiri, jadi makin sering kita ngobrol makin paham aku soal kebutuhanmu. Kalau ada hal yang belum kutahu, aku jujur bilang dan langsung kupelajari saat itu juga. Silakan tanya apa saja, dari pengetahuan umum sampai cuma obrolan santai.';
 function isIdentityQuestion(message) {
   const q = String(message || '').toLowerCase();
   if (/who are you|perkenalkan diri|perkenalkan dirimu/.test(q)) return true;
   return /(siapa|nama|sebut).{0,24}(kamu|namamu|nama kamu|kau|anda|lo|lu)(\b|$)/.test(q)
-    || /(pakai|pake) (model|mesin|ai|apa)/.test(q)
-    || /model (apa|siapa|punya siapa)/.test(q)
     || /^(kamu|kaau|u) (ini )?(siapa|apa)/.test(q)
     || /^(siapa|apa) (sih )?(kamu|namamu)/.test(q);
+}
+
+function isModelQuestion(message) {
+  const q = String(message || '').toLowerCase();
+  return /(pakai|pake|memakai|gunakan).{0,12}(model|mesin|ai)/.test(q)
+    || /model (apa|siapa|punya siapa|kamu|yang)/.test(q)
+    || /(model|mesin)( kamu)? (apa|siapa)/.test(q);
 }
 
 export async function onRequestPost({ request, env }) {
@@ -46,7 +52,9 @@ export async function onRequestPost({ request, env }) {
 
   let reply, matchedId = null, score = 0, matchedPrompt = null, source = null;
   let tutored = false, tutorModel = null;
-  if (isIdentityQuestion(message)) {
+  if (isModelQuestion(message)) {
+    reply = MODEL_ANSWER;
+  } else if (isIdentityQuestion(message)) {
     reply = IDENTITY_ANSWER;
     source = 'identitas';
     matchedPrompt = '(identitas bawaan)';
