@@ -54,7 +54,10 @@ export async function onRequestPost({ request, env }) {
     source = 'smalltalk';
     matchedPrompt = '(sapaan bawaan)';
   } else {
-  const match = bestMatch(message, examples);
+  // Mode Latih AI aktif: Clincoo "chatan" langsung dengan guru AI
+  // (Gemini/OpenRouter) dan jawabannya otomatis disimpan sebagai ingatan baru.
+  // Tanpa guru (mode mati): jawab dari ingatan yang sudah dilatih.
+  const match = tutor ? null : bestMatch(message, examples);
   if (match && match.score >= MATCH_THRESHOLD) {
     reply = match.example.answer;
     matchedId = match.example.id;
@@ -62,7 +65,6 @@ export async function onRequestPost({ request, env }) {
     matchedPrompt = match.example.prompt;
     source = match.example.source;
   } else if (tutor) {
-    // Belum menguasai → tanya guru AI, jawabannya otomatis jadi ingatan baru.
     const gen = await askGuruAI(env, message);
     if (gen) {
       reply = gen.answer;
@@ -73,7 +75,17 @@ export async function onRequestPost({ request, env }) {
       const saved = await saveTraining(env.DB, message, gen.answer);
       matchedId = saved && saved.id ? saved.id : null;
     } else {
-      reply = FALLBACK;
+      // Guru AI tidak bisa dihubungi → coba ingatan yang ada, jujur kalau tidak ada.
+      const m2 = bestMatch(message, examples);
+      if (m2 && m2.score >= MATCH_THRESHOLD) {
+        reply = m2.example.answer;
+        matchedId = m2.example.id;
+        score = Math.round(m2.score * 100) / 100;
+        matchedPrompt = m2.example.prompt;
+        source = m2.example.source;
+      } else {
+        reply = FALLBACK;
+      }
     }
   } else {
     reply = FALLBACK;
