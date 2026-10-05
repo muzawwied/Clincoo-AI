@@ -6,7 +6,7 @@ disusun dari jawaban terkurasi (manusia + model besar).
 ## Halaman
 - `/` — landing: penjelasan pipeline + statistik live
 - `/playground/` — pelatihan: tambah data (manual atau minta jawaban model besar), kurasi (setujui/tolak), edit, impor CSV/TXT
-- `/chat/` — chat full-screen gaya Clincoo untuk menguji Model A
+- `/chat/` — redirect 301 ke `/` (jalur lama)
 
 ## API
 - `POST /api/chat` — `{ message }` → `{ reply, trained, match }`
@@ -15,7 +15,7 @@ disusun dari jawaban terkurasi (manusia + model besar).
 - `POST /api/data` — `{ prompt, answer, source }`
 - `PATCH /api/data` — `{ id, rating?, prompt?, answer? }`
 - `DELETE /api/data` — `{ id }`
-- `POST /api/generate` — `{ prompt }` → jawaban model besar (kunci server-side)
+- `POST /api/generate` — `{ prompt, auto_save? }` → jawaban guru AI (OpenRouter → Gemini) yang otomatis disimpan sebagai data latihan
 - `GET /api/stats` — statistik publik
 - `POST /v1/chat/completions` — kompatibel OpenAI untuk integrasi
 
@@ -27,7 +27,6 @@ terkurasi di sini sudah berformat pasangan instruksi-jawaban.
 
 ## Deploy
 Cloudflare Pages project `modela` (repo GitHub `muzawwied/Model-A`, branch `main`).
-D1: binding `DB` (database `modela`). Environment secret: `MODEL_BIG_KEY` (kunci
-model besar, hanya server-side).
+D1: binding `DB` (database `modela`). Environment secrets (hanya server-side): `OPENROUTER_KEY`, `GEMINI_KEY` (guru AI pelatihan).
 
 Domain: www.clinqoo.biz.id
