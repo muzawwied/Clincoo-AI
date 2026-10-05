@@ -72,12 +72,19 @@ export async function onRequestPost({ request, env }) {
     score = Math.round(match.score * 100) / 100;
     matchedPrompt = match.example.prompt;
     source = match.example.source;
-    // Jawaban dari ingatan ditulis ulang dulu biar terdengar natural, bukan template.
-    const gen = await askGuruAI(env, message, match.example.answer);
-    if (gen) {
-      reply = gen.answer;
+    if (match.score >= 0.85) {
+      // KECOCOKAN KUAT: jawaban sudah ada persis di dataset — keluarkan LANGSUNG,
+      // tanpa proses LLM apa pun. Cepat, instan, hemat kuota.
+      reply = match.example.answer;
     } else {
-      reply = match.example.answer; // guru sibuk → pakai ingatan mentah
+      // Kecocokan mirip tapi bukan persis → tetap ditulis ulang & divalidasi guru,
+      // biar gak salah jawab untuk pertanyaan yang mirip-mirip.
+      const gen = await askGuruAI(env, message, match.example.answer);
+      if (gen) {
+        reply = gen.answer;
+      } else {
+        reply = match.example.answer; // guru sibuk → pakai ingatan mentah
+      }
     }
   } else {
     const gen = await askGuruAI(env, message);
