@@ -375,14 +375,6 @@
         /* Tab Live preview di kapsul cuma relevan saat split (desktop) — di mobile 4 tab bikin kapsul kepanjangan/rusak */
         .chat-nav-link[data-nav="live"] { display: none; }
         #header-more-menu.open { display: flex; opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; }
-        #chat-left-menu.open { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; }
-        body.dark-mode #chat-left-menu { background-color: #0a0a0a; border-color: rgba(255,255,255,0.15); box-shadow: 0 10px 35px rgba(0,0,0,0.5); }
-        body.dark-mode #chat-left-menu .header-menu-item { color: #e5e7eb; }
-        body.dark-mode #chat-left-menu .header-menu-item:hover { background-color: #1a1a1a; color: #ffffff; }
-        body.dark-mode #chat-left-menu .header-menu-item svg { color: #9ca3af; }
-        #sidebar-toggle.is-open { background: #f5f5f5; }
-        #sidebar-toggle.is-open #sidebar-menu-icon { transform: rotate(90deg); }
-        body.dark-mode #sidebar-toggle.is-open { background: #1a1a1a; }
         .header-menu-item { -webkit-tap-highlight-color: transparent; }
         .header-menu-item:focus, .header-menu-item:focus-visible { outline: none; box-shadow: none; }
         button.header-menu-item { -webkit-appearance: none; appearance: none; background: transparent; border: none; margin: 0; font: inherit; color: inherit; }
@@ -760,31 +752,11 @@
     <div id="session-options-popup" class="hidden fixed bg-white rounded-xl shadow-[0_5px_15px_rgba(0,0,0,0.1)] z-[100] w-40 p-1.5"></div>
 
     <header class="fixed top-0 left-0 right-0 z-30 px-3 pt-3 pointer-events-none flex justify-between items-center">
-        <div id="chat-left-menu-wrap" class="relative flex-shrink-0 pointer-events-auto">
-            <button id="sidebar-toggle" type="button" class="pointer-events-auto flex-shrink-0 flex items-center justify-center text-[#222222] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-gray-100 hover:text-black hover:bg-gray-100 transition-all rounded-full w-11 h-11" aria-label="Buka menu" aria-expanded="false" aria-controls="chat-left-menu">
-                <svg id="sidebar-menu-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25" aria-hidden="true">
+        <button id="sidebar-toggle" type="button" class="pointer-events-auto flex-shrink-0 flex items-center justify-center text-[#222222] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-gray-100 hover:text-black hover:bg-gray-100 transition-all rounded-full w-11 h-11" aria-label="Menu">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 7h14M5 12h14M5 17h14" />
                 </svg>
             </button>
-            <div id="chat-left-menu" class="absolute top-full left-0 mt-2 w-56 bg-white rounded-2xl border border-gray-100 shadow-[0_10px_35px_rgba(0,0,0,0.12)] p-1.5 flex flex-col gap-0.5 opacity-0 invisible -translate-y-1 pointer-events-none transition-all duration-200 z-50">
-                <a href="/" class="header-menu-item w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 rounded-xl transition-colors text-sm font-medium text-gray-800">
-                    <svg class="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 11.5 12 4l9 7.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M5.5 10.5V20h13v-9.5M9.5 20v-5h5v5"/></svg>
-                    Beranda
-                </a>
-                <a href="/proyek/code/" class="header-menu-item w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 rounded-xl transition-colors text-sm font-medium text-gray-800">
-                    <svg class="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5h16v14H4z"/><path stroke-linecap="round" stroke-linejoin="round" d="m9 9 3 3-3 3M13 15h3"/></svg>
-                    Workspace
-                </a>
-                <a href="/proyek/dashboard/" class="header-menu-item w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 rounded-xl transition-colors text-sm font-medium text-gray-800">
-                    <svg class="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 19V5M4 19h16"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 15v-3M12 15V8M16 15v-6"/></svg>
-                    Dashboard
-                </a>
-                <a href="/proyek/preview/" class="header-menu-item w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 rounded-xl transition-colors text-sm font-medium text-gray-800">
-                    <svg class="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                    Live preview
-                </a>
-            </div>
-        </div>
         <div id="chat-header-group" class="flex items-center gap-4 flex-shrink-0">
         <div class="pointer-events-auto inline-flex items-center gap-1 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.10)] border border-gray-100/80 rounded-full pl-1.5 pr-1.5 h-11" id="chat-header-capsule">
             <nav id="chat-top-nav" class="relative inline-flex items-center h-full">
@@ -960,39 +932,12 @@
         } catch (e0) {}
 
         const sidebarToggle = document.getElementById('sidebar-toggle');
-        const chatLeftMenu = document.getElementById('chat-left-menu');
 
-        function closeChatLeftMenu() {
-            if (!chatLeftMenu) return;
-            chatLeftMenu.classList.remove('open');
-            sidebarToggle.classList.remove('is-open');
-            sidebarToggle.setAttribute('aria-expanded', 'false');
-        }
-
-        function toggleChatLeftMenu(event) {
-            if (event) event.stopPropagation();
-            if (!chatLeftMenu) return;
-            var open = chatLeftMenu.classList.toggle('open');
-            sidebarToggle.classList.toggle('is-open', open);
-            sidebarToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-        }
-
-        sidebarToggle.addEventListener('click', toggleChatLeftMenu);
-        document.addEventListener('click', function (event) {
-            if (chatLeftMenu && !chatLeftMenu.contains(event.target) && !sidebarToggle.contains(event.target)) {
-                closeChatLeftMenu();
-            }
+        sidebarToggle.addEventListener('click', () => {
+            window.location.href = '/';
         });
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape') closeChatLeftMenu();
-        });
-        if (chatLeftMenu) {
-            chatLeftMenu.querySelectorAll('a').forEach(function (link) {
-                link.addEventListener('click', closeChatLeftMenu);
-            });
-        }
 
-        // Panel workspace: latar penuh di mobile, split di desktop — selalu dimuat
+                // Panel workspace: latar penuh di mobile, split di desktop — selalu dimuat
         (function () {
             var frame = document.getElementById('chat-ws-frame');
             if (!frame || document.documentElement.classList.contains('embed-mode')) return;
