@@ -279,7 +279,7 @@ Environment variable/secret yang digunakan oleh backend dapat mencakup:
 Konfigurasi dan kode repository ini saat ini mencantumkan domain aplikasi berikut:
 
 ```text
-https://www.clinqoo.biz.id
+https://labs.clincoo.biz.id
 ```
 
 Frontend `public/index.html` juga memuat metadata dan referensi deployment pada domain `app.clincoo.buzz`.
