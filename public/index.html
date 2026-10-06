@@ -979,6 +979,65 @@
         if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', () => { sidebarSet(false); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && sidebarIsOpen()) sidebarSet(false); });
 
+        // ===== [6 Okt 2026, arahan owner] GESER: buka/tutup sidebar dengan swipe =====
+        // Buka: geser ke kanan dari tepi kiri layar (zona 32px). Tutup: geser ke kiri
+        // di mana saja saat sidebar terbuka. Sidebar mengikuti jari saat diseret,
+        // lalu menempel ke posisi terdekat (terbuka/tertutup) dengan animasi biasa.
+        // Gerakan vertikal tidak terganggu: hanya horisontal dominan yang dianggap geser.
+        (function () {
+            const bar = document.getElementById('chat-sidebar');
+            const bd = document.getElementById('sidebar-backdrop');
+            if (!bar || !bd || typeof sidebarSet !== 'function') return;
+            const width = () => bar.offsetWidth || 300;
+            const isOpen = () => bar.classList.contains('open');
+            let sx = 0, sy = 0, dx = 0, mode = null, moved = false, t0 = 0;
+            function apply(px) {
+                const w = width();
+                const p = Math.max(0, Math.min(w, px));
+                bar.style.transition = 'none';
+                bar.style.transform = 'translateX(' + (p - w) + 'px)';
+                bd.style.transition = 'none';
+                bd.style.opacity = (p / w).toFixed(3);
+                bd.style.visibility = p > 6 ? 'visible' : 'hidden';
+            }
+            function settle(open) {
+                bar.style.transition = ''; bar.style.transform = '';
+                bd.style.transition = ''; bd.style.opacity = ''; bd.style.visibility = '';
+                sidebarSet(open);
+            }
+            document.addEventListener('touchstart', function (e) {
+                const t = e.touches[0];
+                sx = t.clientX; sy = t.clientY; dx = 0; moved = false; t0 = Date.now();
+                mode = isOpen() ? 'close' : (sx <= 32 ? 'open' : null);
+            }, { passive: true });
+            document.addEventListener('touchmove', function (e) {
+                if (!mode) return;
+                const t = e.touches[0];
+                dx = t.clientX - sx;
+                const dy = t.clientY - sy;
+                if (!moved) {
+                    if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+                    moved = true;
+                }
+                if (mode === 'open') apply(Math.max(0, dx));
+                else apply(width() + Math.min(0, dx));
+            }, { passive: true });
+            document.addEventListener('touchend', function (e) {
+                if (!mode) return;
+                if (moved) {
+                    const w = width();
+                    const dt = Math.max(1, Date.now() - t0);
+                    const v = dx / dt; // px per ms
+                    let open;
+                    if (mode === 'open') open = (dx > w / 3) || (v > 0.45 && dx > 24);
+                    else open = !(dx < -w / 3) && !(v < -0.45 && dx < -24);
+                    settle(open);
+                    try { e.preventDefault(); } catch (er) {} // jangan nembak klik tombol setelah geser
+                }
+                mode = null; moved = false;
+            }, { passive: false });
+        })();
+
                 // Panel workspace: latar penuh di mobile, split di desktop — selalu dimuat
         (function () {
             var frame = document.getElementById('chat-ws-frame');
