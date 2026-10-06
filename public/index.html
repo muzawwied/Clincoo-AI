@@ -980,16 +980,19 @@
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && sidebarIsOpen()) sidebarSet(false); });
 
         // ===== [6 Okt 2026, arahan owner] GESER: buka/tutup sidebar dengan swipe =====
-        // Buka: geser ke kanan dari tepi kiri layar (zona 32px). Tutup: geser ke kiri
-        // di mana saja saat sidebar terbuka. Sidebar mengikuti jari saat diseret,
-        // lalu menempel ke posisi terdekat (terbuka/tertutup) dengan animasi biasa.
-        // Gerakan vertikal tidak terganggu: hanya horisontal dominan yang dianggap geser.
+        // REVISI 2 (laporan owner "ga bisa digeser buat dibuka"): zona buka lama hanya
+        // 32px dari tepi paling kiri — terlalu sempit DAN bertabrakan dengan gestur
+        // "back" bawaan browser (Android/iOS) yang mencuri sentuhan tepi terluar.
+        // Zona buka kini mencakup tepi kiri sampai ~28% lebar layar (min 48px),
+        // elemen scroll-horizontal & kolom ketik dikecualikan, touchcancel ditangani.
         (function () {
             const bar = document.getElementById('chat-sidebar');
             const bd = document.getElementById('sidebar-backdrop');
             if (!bar || !bd || typeof sidebarSet !== 'function') return;
             const width = () => bar.offsetWidth || 300;
             const isOpen = () => bar.classList.contains('open');
+            const edgeZone = () => Math.max(48, Math.min(window.innerWidth * 0.28, 140));
+            const excluded = (el) => !!(el && el.closest && el.closest('textarea, input, select, [contenteditable], .hide-scrollbar, #prompt-chips, #upload-menu, .toolcalls-detail-block'));
             let sx = 0, sy = 0, dx = 0, mode = null, moved = false, t0 = 0;
             function apply(px) {
                 const w = width();
@@ -1008,7 +1011,8 @@
             document.addEventListener('touchstart', function (e) {
                 const t = e.touches[0];
                 sx = t.clientX; sy = t.clientY; dx = 0; moved = false; t0 = Date.now();
-                mode = isOpen() ? 'close' : (sx <= 32 ? 'open' : null);
+                if (isOpen()) { mode = 'close'; return; }
+                mode = (sx <= edgeZone() && !excluded(t.target)) ? 'open' : null;
             }, { passive: true });
             document.addEventListener('touchmove', function (e) {
                 if (!mode) return;
@@ -1029,13 +1033,17 @@
                     const dt = Math.max(1, Date.now() - t0);
                     const v = dx / dt; // px per ms
                     let open;
-                    if (mode === 'open') open = (dx > w / 3) || (v > 0.45 && dx > 24);
-                    else open = !(dx < -w / 3) && !(v < -0.45 && dx < -24);
+                    if (mode === 'open') open = (dx > w / 3) || (v > 0.3 && dx > 18);
+                    else open = !(dx < -w / 4) && !(v < -0.35 && dx < -18);
                     settle(open);
-                    try { e.preventDefault(); } catch (er) {} // jangan nembak klik tombol setelah geser
+                    try { e.preventDefault(); } catch (er) {} // jangan nembak klik setelah geser
                 }
                 mode = null; moved = false;
             }, { passive: false });
+            document.addEventListener('touchcancel', function () {
+                if (mode && moved) settle(mode === 'open' ? false : true);
+                mode = null; moved = false;
+            }, { passive: true });
         })();
 
                 // Panel workspace: latar penuh di mobile, split di desktop — selalu dimuat
