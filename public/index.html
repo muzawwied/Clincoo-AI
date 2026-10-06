@@ -403,7 +403,7 @@
         /* ==== Sidebar (menu kiri) — style senada kartu header: putih, rounded, soft shadow, dark-mode senada ==== */
         #sidebar-backdrop { position: fixed; inset: 0; z-index: 39; background: rgba(0,0,0,0.35); opacity: 0; visibility: hidden; transition: opacity 0.25s ease, visibility 0.25s ease; }
         #sidebar-backdrop.open { opacity: 1; visibility: visible; }
-        #chat-sidebar { position: fixed; top: 0; left: 0; bottom: 0; z-index: 40; width: 300px; max-width: calc(100vw - 32px); background: #ffffff; border: none; border-right: 1px solid #f3f4f6; border-radius: 0 20px 20px 0; box-shadow: 0 12px 48px rgba(0,0,0,0.16); transform: translateX(-100%); transition: transform 0.28s cubic-bezier(0.32, 0.72, 0.24, 1); display: flex; flex-direction: column; overflow: hidden; }
+        #chat-sidebar { position: fixed; top: 0; left: 0; bottom: 0; z-index: 40; width: 300px; max-width: calc(100vw - 32px); background: #ffffff; border: none; border-right: 1px solid #f3f4f6; border-radius: 0; box-shadow: 0 12px 48px rgba(0,0,0,0.16); transform: translateX(-100%); transition: transform 0.28s cubic-bezier(0.32, 0.72, 0.24, 1); display: flex; flex-direction: column; overflow: hidden; }
         #chat-sidebar.open { transform: translateX(0); }
         .sidebar-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 10px; }
         .sidebar-title { font-size: 13px; font-weight: 700; color: #111827; letter-spacing: 0.01em; }
@@ -844,13 +844,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M6 6l12 12M18 6L6 18"/></svg>
             </button>
         </div>
-        <div class="sidebar-body">
-            <div class="sidebar-empty">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h10M4 18h7"/></svg>
-                <p>Belum ada menu di sini.<br>Isi menu akan segera ditambahkan.</p>
-            </div>
-        </div>
-        <div class="sidebar-foot">Clincoo AI</div>
+        <div class="sidebar-body"></div>
     </aside>
 
     
