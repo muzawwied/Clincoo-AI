@@ -11,6 +11,12 @@ Setiap percakapan yang dijawab model di labs.clincoo.biz.id otomatis tersimpan k
   ```json
   {"messages": [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]}
   ```
+- `seed-ideal.jsonl` — 86 contoh dialog ideal buatan model besar (gaya Clincoo:
+  perilaku asisten, produk Clincoo, dan konsep web). Dipakai mengunci gaya dan
+  logika jawaban saat fine-tune; boleh ditambah terus secara manual.
+- `finetune-unsloth.ipynb` — notebook Colab (GPU) untuk LoRA/QLoRA fine-tune
+  model dasar memakai gabungan kedua JSONL di atas, ekspor GGUF (Q4_K_M),
+  lalu pasang di Ollama lewat `ollama create`.
 - `export.sh` — tarik snapshot terbaru dari produksi lalu regenerasi file JSONL.
   Jalankan: `bash dataset/export.sh`
 
@@ -21,6 +27,8 @@ Setiap percakapan yang dijawab model di labs.clincoo.biz.id otomatis tersimpan k
    `saveTraining()` ke D1; duplikat pertanyaan hanya memperbarui jawaban.
 3. `GET /api/dataset` mengekspor seluruh isi tabel sebagai JSON.
 4. `export.sh` menyaring jawaban error/kuota lalu menuliskannya ke JSONL.
+5. `seed-ideal.jsonl` tidak berasal dari percakapan, melainkan contoh ideal
+   yang dibuat model besar untuk mengunci gaya jawaban Clincoo.
 
 ## Pemakaian untuk kelanjutan (fine-tune)
 
