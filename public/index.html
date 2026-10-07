@@ -5795,6 +5795,27 @@ window.chatLivePreview = function () {
                     if (qIdx !== -1) messages[qIdx].isError = true;
                     isFetchComplete = true;
                 }
+                // FIX [7 Okt]: blok animasi ketik + orphan-check cabang utama hidup di
+                // DALAM blok else streaming, jadi mode qwen tidak pernah melewatinya —
+                // bubble akan manggut "Thinking..." selamanya. Mode qwen menjalankan
+                // sendiri animasinya (pola sama: ketik bertahap ke elemen msg-text,
+                // lalu stopGeneration() memfinalisasi + saveChatLog + renderMessages).
+                const qFinalText = streamingBuffer;
+                let qShown = 0;
+                const qType = setInterval(function () {
+                    if (!isGenerating) { clearInterval(qType); return; }
+                    if (qShown < qFinalText.length) {
+                        qShown = Math.min(qFinalText.length, qShown + Math.max(3, Math.floor((qFinalText.length - qShown) / 3)));
+                        const qMsgIndex = messages.findIndex(m => m.id === aiMsgObj.id);
+                        if (qMsgIndex !== -1) messages[qMsgIndex].text = qFinalText.slice(0, qShown);
+                        const qTextEl = document.getElementById('msg-text-' + aiMsgObj.id);
+                        if (qTextEl) { qTextEl.innerHTML = formatMarkdown(balanceMarkdown(qFinalText.slice(0, qShown))); qTextEl.classList.add('typing-cursor'); }
+                        scrollToBottom(false);
+                    } else {
+                        clearInterval(qType);
+                        stopGeneration();
+                    }
+                }, 15);
             }
             else if (requiresImage) {
                 try {
