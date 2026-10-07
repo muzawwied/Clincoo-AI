@@ -303,7 +303,11 @@ export async function askOllamaDirect(env, prompt, msgsIn) {
         stream: false,
         think: false,
         wait: 100,
-        keep_alive: '24h'
+        keep_alive: '24h',
+        // [7 Okt 2026] Tuning kualitas: default Modelfile (temp 1 + presence_penalty
+        // 1.5) bikin jawaban kurang presisi/ramai. Parameter resmi Qwen mode
+        // non-thinking: temp 0.7, top_p 0.8, top_k 20 — lebih fokus dan cerdas.
+        options: { temperature: 0.7, top_p: 0.8, top_k: 20, presence_penalty: 0, repeat_penalty: 1.0 }
       }),
       signal: AbortSignal.timeout(110000)
     });
