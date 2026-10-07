@@ -731,11 +731,8 @@
         body.dark-mode #sidebar-popup { background-color: #0a0a0a !important; }
         body.dark-mode #session-options-popup { background-color: #0a0a0a !important; border-color: #222222 !important; }
         body.dark-mode #upload-menu { background-color: #0a0a0a !important; border-color: #222222 !important; }
-        body.dark-mode #model-select-menu { background-color: #0a0a0a !important; border-color: #222222 !important; }
-        body.dark-mode #model-select-btn { background-color: #1a1a1a !important; }
-        body.dark-mode #model-select-btn:hover { background-color: #242424 !important; }
+        body.dark-mode #model-select-btn { background-color: #1a1a1a !important; cursor: default; }
         body.dark-mode #model-select-label { color: #e5e5e5 !important; }
-        body.dark-mode #model-select-menu button:hover { background-color: #1f1f1f !important; }
         body.dark-mode .shadow-\[0_2px_8px_rgba\(0\,0\,0\,0\.08\)\] { box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important; }
         body.dark-mode .shadow-\[0_8px_30px_rgb\(0\,0\,0\,0\.08\)\] { box-shadow: 0 8px 30px rgba(0,0,0,0.4) !important; }
         body.dark-mode ::-webkit-scrollbar-thumb { background: #222222; }
@@ -972,19 +969,8 @@
                 </div>
                 
                 <div class="flex items-center gap-1.5 shrink-0">
-                <div class="relative">
-                    <button id="model-select-btn" type="button" class="h-9 px-3 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center gap-1.5 cursor-pointer" title="Pilih model AI" aria-expanded="false">
-                        <span id="model-select-label" class="text-xs font-semibold text-gray-700 whitespace-nowrap">Orkestra-1 Mini</span>
-                        <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div id="model-select-menu" class="absolute bottom-full right-0 mb-2 w-60 bg-white text-gray-800 border border-gray-100 rounded-xl shadow-xl p-1.5 flex flex-col gap-1 opacity-0 invisible translate-y-2 pointer-events-none transition-all duration-300 z-50 origin-bottom-right">
-                        <button type="button" onclick="applyModelChoice('orkestra')" class="w-full flex items-center justify-between gap-2 px-3 py-2.5 hover:bg-gray-50 rounded-lg transition-colors text-sm font-medium text-left cursor-pointer">
-                            <span>Orkestra-1 Mini</span>
-                        </button>
-                        <button type="button" onclick="applyModelChoice('qwen')" class="w-full flex items-center justify-between gap-2 px-3 py-2.5 hover:bg-gray-50 rounded-lg transition-colors text-sm font-medium text-left cursor-pointer">
-                            <span>Qwen3.6</span>
-                        </button>
-                    </div>
+                <div id="model-select-btn" class="h-9 px-3 rounded-full bg-gray-100 flex items-center gap-1.5 select-none" title="Model AI">
+                    <span id="model-select-label" class="text-xs font-semibold text-gray-700 whitespace-nowrap">Orkestra-1 Mini</span>
                 </div>
                 <button id="submit-prompt-btn" class="w-10 h-10 bg-black text-white rounded-full hover:bg-gray-800 transition-all duration-200 active:scale-90 flex items-center justify-center cursor-pointer shadow-sm hover:shadow-md shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1033,38 +1019,14 @@
         const uploadMenu = document.getElementById('upload-menu');
         const uploadFileBtn = document.getElementById('upload-file-btn');
         
-        // ===== [7 Okt 2026] KAPSUL PILIHAN MODEL (Orkestra-1 Mini / Qwen3.6) =====
-        // Pil di samping tombol kirim; pilihan tersimpan di localStorage. Default
-        // 'orkestra' = perilaku lama (tanpa parameter model, aliran be2 penuh).
+        // ===== [7 Okt 2026] KAPSUL MODEL: kini chip statis Orkestra-1 Mini.
+        // Menu pilihan model (termasuk Qwen3.6) dihapus per arahan owner.
         (function () {
-          const mBtn = document.getElementById('model-select-btn');
-          const mMenu = document.getElementById('model-select-menu');
-          const mLabel = document.getElementById('model-select-label');
-          if (!mBtn || !mMenu || !mLabel) return;
-          const KEY = 'clincoo_model_choice';
-          const CHOICES = { orkestra: { label: 'Orkestra-1 Mini', param: null }, qwen: { label: 'Qwen3.6', param: 'qwen3.6' } };
-          let choice;
-          try { choice = localStorage.getItem(KEY); } catch (e0) { choice = null; }
-          if (!CHOICES[choice]) choice = 'orkestra';
-          const isOpen = function () { return mMenu.classList.contains('visible'); };
-          const setOpen = function (open) {
-            if (open) { mMenu.classList.remove('opacity-0', 'invisible', 'translate-y-2', 'pointer-events-none'); mMenu.classList.add('opacity-100', 'visible', 'translate-y-0', 'pointer-events-auto'); }
-            else { mMenu.classList.add('opacity-0', 'invisible', 'translate-y-2', 'pointer-events-none'); mMenu.classList.remove('opacity-100', 'visible', 'translate-y-0', 'pointer-events-auto'); }
-          };
-          const apply = function () { mLabel.textContent = CHOICES[choice].label; mBtn.setAttribute('aria-expanded', isOpen() ? 'true' : 'false'); };
-          apply();
-          mBtn.addEventListener('click', function (e) { e.stopPropagation(); setOpen(!isOpen()); apply(); });
-          document.addEventListener('click', function (e) {
-            if (!e.target.closest('#model-select-btn') && !e.target.closest('#model-select-menu')) setOpen(false);
-          });
-          window.applyModelChoice = function (id) {
-            if (!CHOICES[id]) return;
-            choice = id;
-            try { localStorage.setItem(KEY, id); } catch (e0) {}
-            apply();
-            setOpen(false);
-          };
-          window.selectedChatModel = function () { return CHOICES[choice].param; };
+          try {
+            if (localStorage.getItem('clincoo_model_choice') !== 'orkestra') localStorage.setItem('clincoo_model_choice', 'orkestra');
+          } catch (e0) {}
+          window.applyModelChoice = function () {};
+          window.selectedChatModel = function () { return null; }; // selalu aliran Orkestra-1 Mini
         })();
         
         // Prefill dari halaman lain (mis. tombol "Atur DNS otomatis dengan AI" di halaman Domain):
@@ -1123,7 +1085,11 @@
                     if (!firstUser) continue;
                     let t = 0;
                     for (const m of log) { if (m && m.time && m.time > t) t = m.time; }
-                    items.push({ title: String(firstUser.text).slice(0, 60), last: t || 0 });
+                    // Judul utama: buatan AI (disimpan setelah percakapan pertama).
+                    // Sementara menunggu judul AI, tampilkan potongan pesan pertama.
+                    let aiTitle = null;
+                    try { aiTitle = (JSON.parse(localStorage.getItem(k + '_title') || 'null') || {}).title || null; } catch (er2) {}
+                    items.push({ title: aiTitle || String(firstUser.text).slice(0, 60), last: t || 0 });
                 }
             } catch (er) {}
             items.sort((a, b) => b.last - a.last);
@@ -1548,6 +1514,33 @@ window.chatLivePreview = function () {
             let pid = (typeof currentProjectId !== 'undefined' && currentProjectId) ? String(currentProjectId) : 'global';
             return LS_CHAT_PREFIX + pid;
         }
+
+        // ==== [7 Okt 2026, arahan owner] Judul percakapan dibuat otomatis oleh AI ====
+        // Bukan lagi potongan pesan pertama user. Judul disimpan per-proyek di
+        // localStorage (lsChatKey() + '_title') begitu percakapan pertama selesai.
+        let __chatTitleInFlight = false;
+        function lsTitleKey() { return lsChatKey() + '_title'; }
+        function scheduleChatTitleGen() {
+            try {
+                if (localStorage.getItem(lsTitleKey())) return;
+                if (__chatTitleInFlight) return;
+                const firstUser = messages.find(m => m && m.role === 'user' && m.text);
+                const hasAi = messages.some(m => m && m.role === 'assistant' && m.text);
+                if (!firstUser || !hasAi) return;
+                __chatTitleInFlight = true;
+                const base = (['clincoo-be2.pages.dev','modela.pages.dev','www.clinqoo.biz.id','clincoo-ai.pages.dev','localhost','127.0.0.1'].indexOf(location.hostname) === -1) ? 'https://clincoo-be2.pages.dev' : '';
+                const ask = 'Buat judul singkat untuk percakapan AI berikut: maksimal 5 kata, bahasa Indonesia, tanpa tanda kutip, tanpa titik di akhir. Balas HANYA judulnya.\n\nPesan user: ' + String(firstUser.text).slice(0, 300);
+                fetch(base + '/api/ai', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages: [{ role: 'user', content: ask }] })
+                }).then(function (r) { return r.json(); }).then(function (j) {
+                    __chatTitleInFlight = false;
+                    let t = String((j && j.text) || '').trim().split('\n')[0].replace(/^[\'"]+|[\'"]+$/g, '').slice(0, 60);
+                    if (t) { try { localStorage.setItem(lsTitleKey(), JSON.stringify({ title: t, t: Date.now() })); } catch (e2) {} }
+                }).catch(function () { __chatTitleInFlight = false; }); // dicoba lagi pada simpanan berikutnya
+            } catch (er) { __chatTitleInFlight = false; }
+        }
         function saveChatLog() {
             try {
                 // FIX: toolCalls ikut disimpan (dulu HILANG saat pindah halaman — makanya
@@ -1576,6 +1569,7 @@ window.chatLivePreview = function () {
                 if (currentSessionId) { try { localStorage.setItem(lsChatKey() + '_session', currentSessionId); } catch(e) {} }
                 lastSavedLog = log;
                 syncChatLogOut(log, false);
+                try { scheduleChatTitleGen(); } catch (er) {}
             } catch(e) {}
         }
         function loadChatLog() {
