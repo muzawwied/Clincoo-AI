@@ -184,24 +184,27 @@ export async function askGuruAI(env, prompt, memory) {
     } catch (e) { console.log('guru:cf-err', e && e.message); }
   }
 
-  // 1b) Server Ollama pribadi (glm-4.7-flash) lewat tunnel Cloudflare — provider
+  // 1b) Server Ollama pribadi (qwen3.6) lewat relay API publik — provider
   // alternatif milik sendiri: dicoba kalau lapisan Cloudflare sibuk/gagal.
   try {
-    const ollamaBase = env.OLLAMA_ENDPOINT || 'https://must-acknowledge-cold-ranging.trycloudflare.com';
-    const r = await fetch(ollamaBase + '/api/chat', {
+    const ollamaBase = env.OLLAMA_ENDPOINT || 'https://solas-f0d9a3e9.base44.app/functions/ollamaRelay';
+    const ollamaUrl = ollamaBase.endsWith('/ollamaRelay') ? ollamaBase : ollamaBase + '/api/chat';
+    const r = await fetch(ollamaUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-relay-key': env.OLLAMA_KEY || '3b40191abb88f71d1fcef672a70737cd09d16cdf55313c2b' },
       body: JSON.stringify({
-        model: 'glm-4.7-flash',
+        model: 'qwen3.6',
         messages: [ { role: 'system', content: sys }, { role: 'user', content: user } ],
         stream: false,
+        think: false,
+        wait: 100,
         keep_alive: '24h'
       }),
-      signal: AbortSignal.timeout(25000)
+      signal: AbortSignal.timeout(110000)
     });
     const d = await r.json().catch(() => ({}));
     const text = d && d.message && d.message.content;
-    if (r.ok && text && String(text).trim()) return { answer: String(text).trim(), model: 'glm-4.7-flash (server pribadi)' };
+    if (r.ok && text && String(text).trim()) return { answer: String(text).trim(), model: 'qwen3.6 (server pribadi)' };
     console.log('guru:ollama-miss', r.status, String(d && d.error || '').slice(0, 120));
   } catch (e) { console.log('guru:ollama-err', e && e.message); }
   if (env.OPENROUTER_KEY) {
