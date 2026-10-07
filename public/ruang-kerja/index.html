@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Ruang Kerja — Clincoo</title>
+<link rel="icon" type="image/png" sizes="64x64" href="/assets/favicon.png">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config = { darkMode: ["class", ".dark-mode"] };</script>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    html, body { margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #ffffff; color: #111827; -webkit-tap-highlight-color: transparent; }
+    body.dark-mode { background: #000000; color: #f3f4f6; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: rgba(127,127,127,0.35); border-radius: 999px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    /* Bar header glass dari ujung ke ujung */
+    .topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 30; height: 64px; display: flex; align-items: center; gap: 12px; padding: 0 16px;
+        background: rgba(255,255,255,0.55); -webkit-backdrop-filter: blur(20px) saturate(1.7); backdrop-filter: blur(20px) saturate(1.7);
+        border-bottom: 1px solid rgba(17,24,39,0.06); }
+    body.dark-mode .topbar { background: rgba(10,10,10,0.5); border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .topbar h1 { font-size: 16px; font-weight: 800; letter-spacing: -0.01em; }
+    .back-btn { width: 44px; height: 44px; border-radius: 999px; border: none; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #374151; transition: background 0.15s ease; flex-shrink: 0; }
+    .back-btn:hover { background: rgba(17,24,39,0.06); }
+    body.dark-mode .back-btn { color: #d1d5db; }
+    body.dark-mode .back-btn:hover { background: rgba(255,255,255,0.1); }
+
+    /* Glow latar */
+    #bg-glow { position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        background: radial-gradient(620px 400px at 10% -8%, rgba(99,102,241,0.10), transparent 62%),
+                    radial-gradient(700px 430px at 94% -12%, rgba(236,72,153,0.08), transparent 62%),
+                    radial-gradient(820px 520px at 50% 112%, rgba(14,165,233,0.07), transparent 62%); }
+    body.dark-mode #bg-glow { background: radial-gradient(620px 400px at 10% -8%, rgba(99,102,241,0.17), transparent 62%),
+                    radial-gradient(700px 430px at 94% -12%, rgba(236,72,153,0.10), transparent 62%),
+                    radial-gradient(820px 520px at 50% 112%, rgba(14,165,233,0.10), transparent 62%); }
+
+    /* Kartu & baris item */
+    .card { background: rgba(255,255,255,0.82); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 1px solid rgba(17,24,39,0.08); border-radius: 20px; }
+    body.dark-mode .card { background: rgba(14,14,14,0.7); border-color: rgba(255,255,255,0.1); }
+    .stat { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; }
+    .stat b { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; }
+    .stat span { font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .btn { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; border-radius: 999px; padding: 10px 16px; cursor: pointer; border: none; transition: all 0.15s ease; font-family: inherit; }
+    .btn-primary { background: #111827; color: #ffffff; }
+    .btn-primary:hover { background: #000000; }
+    .btn-ghost { background: transparent; border: 1px solid rgba(17,24,39,0.12); color: #374151; }
+    .btn-ghost:hover { background: rgba(17,24,39,0.05); }
+    body.dark-mode .btn-primary { background: #ffffff; color: #0a0a0a; }
+    body.dark-mode .btn-primary:hover { background: #e5e5e5; }
+    body.dark-mode .btn-ghost { border-color: rgba(255,255,255,0.16); color: #d1d5db; }
+    body.dark-mode .btn-ghost:hover { background: rgba(255,255,255,0.08); }
+    .btn svg { width: 15px; height: 15px; }
+    .btn:active { transform: scale(0.97); }
+
+    .search { display: flex; align-items: center; gap: 8px; flex: 1; max-width: 320px; background: rgba(17,24,39,0.04); border: 1px solid rgba(17,24,39,0.07); border-radius: 999px; padding: 9px 14px; }
+    body.dark-mode .search { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); }
+    .search svg { width: 15px; height: 15px; color: #9ca3af; flex-shrink: 0; }
+    .search input { border: none; background: transparent; outline: none; font-family: inherit; font-size: 13px; width: 100%; color: inherit; }
+
+    .crumb { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; font-size: 12.5px; font-weight: 600; color: #6b7280; }
+    body.dark-mode .crumb { color: #9ca3af; }
+    .crumb button { border: none; background: transparent; color: #6b7280; font: inherit; cursor: pointer; padding: 2px 4px; border-radius: 6px; }
+    .crumb button:hover { color: #111827; background: rgba(17,24,39,0.05); }
+    body.dark-mode .crumb button:hover { color: #ffffff; background: rgba(255,255,255,0.08); }
+    .crumb .cur { color: #111827; padding: 2px 4px; }
+    body.dark-mode .crumb .cur { color: #f3f4f6; }
+
+    .row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; cursor: pointer; transition: background 0.15s ease; }
+    .row:hover { background: rgba(17,24,39,0.045); }
+    body.dark-mode .row:hover { background: rgba(255,255,255,0.06); }
+    .row .ic { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: rgba(99,102,241,0.1); color: #6366f1; }
+    .row .ic.is-file { background: rgba(14,165,233,0.1); color: #0ea5e9; }
+    body.dark-mode .row .ic { background: rgba(99,102,241,0.16); color: #818cf8; }
+    body.dark-mode .row .ic.is-file { background: rgba(14,165,233,0.14); color: #38bdf8; }
+    .row .ic svg { width: 17px; height: 17px; }
+    .row .meta { min-width: 0; flex: 1; }
+    .row .name { font-size: 13.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .row .sub { font-size: 11.5px; color: #9ca3af; font-weight: 500; margin-top: 1px; }
+    .row .act { display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s ease; }
+    .row:hover .act { opacity: 1; }
+    @media (hover: none) { .row .act { opacity: 1; } }
+    .act button { width: 32px; height: 32px; border: none; background: transparent; border-radius: 9px; display: flex; align-items: center; justify-content: center; color: #6b7280; cursor: pointer; }
+    .act button:hover { background: rgba(17,24,39,0.07); color: #111827; }
+    .act button.danger:hover { background: #fef2f2; color: #dc2626; }
+    body.dark-mode .act button { color: #9ca3af; }
+    body.dark-mode .act button:hover { background: rgba(255,255,255,0.1); color: #ffffff; }
+    body.dark-mode .act button.danger:hover { background: #2a1414; color: #f87171; }
+    .act svg { width: 15px; height: 15px; }
+
+    /* Modal */
+    .overlay { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,0.45); display: flex; align-items: flex-end; justify-content: center; padding: 0; }
+    .sheet { width: 100%; max-width: 640px; max-height: 88dvh; display: flex; flex-direction: column; background: #ffffff; border-radius: 24px 24px 0 0; box-shadow: 0 -12px 48px rgba(0,0,0,0.22); animation: up 0.24s ease-out; }
+    body.dark-mode .sheet { background: #0f0f0f; }
+    @keyframes up { from { transform: translateY(40px); opacity: 0.4; } to { transform: none; opacity: 1; } }
+    @media (min-width: 640px) { .overlay { align-items: center; padding: 24px; } .sheet { border-radius: 24px; } }
+    .sheet-h { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 8px; }
+    .sheet-h h2 { font-size: 16px; font-weight: 800; margin: 0; }
+    .sheet-b { padding: 10px 20px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+    .inp { width: 100%; font-family: inherit; font-size: 13.5px; padding: 12px 14px; border-radius: 13px; border: 1px solid rgba(17,24,39,0.14); background: transparent; color: inherit; outline: none; }
+    .inp:focus { border-color: #6366f1; }
+    body.dark-mode .inp { border-color: rgba(255,255,255,0.16); }
+    textarea.inp { min-height: 220px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; line-height: 1.6; }
+    .close-x { width: 34px; height: 34px; border: none; background: transparent; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #9ca3af; }
+    .close-x:hover { background: rgba(17,24,39,0.06); color: #111827; }
+    body.dark-mode .close-x:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .close-x svg { width: 16px; height: 16px; }
+    .hint { font-size: 12px; color: #9ca3af; font-weight: 500; line-height: 1.5; }
+</style>
+</head>
+<body class="min-h-[100dvh]">
+<script>(function(){try{var t=localStorage.getItem("clincoo_theme");var d=(t==="Gelap")||((!t||t==="Sistem (Default)")&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);if(d)document.body.classList.add("dark-mode");}catch(e){}})();</script>
+<div id="bg-glow" aria-hidden="true"></div>
+
+<header class="topbar">
+    <button type="button" class="back-btn" onclick="goBack()" aria-label="Kembali">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </button>
+    <h1>Ruang Kerja</h1>
+    <span id="proj-chip" class="text-[11px] font-bold px-2.5 py-1 rounded-full" style="background:rgba(99,102,241,0.1);color:#6366f1;"></span>
+</header>
+
+<main class="max-w-2xl mx-auto px-4 pt-[84px] pb-16 relative z-10">
+    <!-- Statistik -->
+    <div class="grid grid-cols-3 gap-3">
+        <div class="card stat"><b id="st-files">0</b><span>File</span></div>
+        <div class="card stat"><b id="st-folders">0</b><span>Folder</span></div>
+        <div class="card stat"><b id="st-size">0 B</b><span>Ukuran</span></div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="flex items-center gap-2.5 mt-5 flex-wrap">
+        <label class="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="m20 20-3.2-3.2"/></svg>
+            <input id="q" type="text" placeholder="Cari file atau folder…" oninput="render()">
+        </label>
+        <button type="button" class="btn btn-ghost" onclick="newFolder()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M12 11v5M9.5 13.5h5"/></svg>
+            Folder
+        </button>
+        <button type="button" class="btn btn-primary" onclick="newFile()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            File baru
+        </button>
+    </div>
+
+    <!-- Breadcrumb -->
+    <div class="mt-5" id="crumb"></div>
+
+    <!-- Daftar item -->
+    <div class="card mt-3 p-2" id="list"></div>
+
+    <p class="hint mt-4 text-center">Perubahan tersimpan di penyimpanan browser perangkat ini dan tersinkron dengan workspace Clincoo.</p>
+</main>
+
+<!-- Modal file -->
+<div id="modal" class="overlay" style="display:none;">
+    <div class="sheet" role="dialog" aria-modal="true">
+        <div class="sheet-h">
+            <h2 id="modal-title">File baru</h2>
+            <button type="button" class="close-x" onclick="closeModal()" aria-label="Tutup">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+        </div>
+        <div class="sheet-b">
+            <input id="f-name" class="inp mono" type="text" placeholder="nama-file.html">
+            <textarea id="f-content" class="inp" placeholder="Tulis isi file di sini…"></textarea>
+            <div class="flex gap-2.5">
+                <button type="button" class="btn btn-primary flex-1 justify-center" id="f-save" onclick="saveModal()">Simpan</button>
+                <button type="button" class="btn btn-ghost" onclick="closeModal()">Batal</button>
+            </div>
+            <p class="hint" id="f-hint" style="display:none;"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+'use strict';
+/* ==== Ruang Kerja — manajer file workspace Clincoo (store: clincoo_workspace_files_<pid>) ==== */
+var PID_KEY = 'clincoo_current_project_id';
+var pid = 'global';
+try { pid = localStorage.getItem(PID_KEY) || 'global'; } catch (e) {}
+function storeKey() { return 'clincoo_workspace_files_' + pid; }
+function load() {
+    try {
+        var raw = localStorage.getItem(storeKey());
+        if (!raw) { var legacy = localStorage.getItem('clincoo_workspace_files'); if (legacy) { localStorage.setItem(storeKey(), legacy); raw = legacy; } }
+        var d = JSON.parse(raw);
+        if (d && typeof d === 'object' && Array.isArray(d.root)) return d;
+    } catch (e) {}
+    return { root: [] };
+}
+function persist(d) { try { localStorage.setItem(storeKey(), JSON.stringify(d)); } catch (e) { alert('Penyimpanan browser penuh — perubahan tidak tersimpan.'); } }
+
+var curPath = ''; // '' = root
+var editMode = null; // null | {path} untuk edit file
+
+function esc(x) { return String(x == null ? '' : x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function sizeLabel(content) {
+    var b = new Blob([content || '']).size;
+    if (b > 1048576) return (b / 1048576).toFixed(2) + ' MB';
+    if (b > 1024) return (b / 1024).toFixed(1) + ' KB';
+    return b + ' B';
+}
+function keyOf(path) { return path ? path : 'root'; }
+function parentOf(path) { var i = path.lastIndexOf('/'); return i === -1 ? '' : path.slice(0, i); }
+function baseName(path) { var i = path.lastIndexOf('/'); return i === -1 ? path : path.slice(i + 1); }
+
+function countUnder(d, folderPath) {
+    var n = 0;
+    Object.keys(d).forEach(function (k) {
+        if (k === 'root') return;
+        if (k === folderPath || k.indexOf(folderPath + '/') === 0) {
+            (d[k] || []).forEach(function (it) { if (it && it.type === 'file') n++; });
+        }
+    });
+    return n;
+}
+function treeStats(d) {
+    var files = 0, folders = 0, bytes = 0;
+    Object.keys(d).forEach(function (k) {
+        (d[k] || []).forEach(function (it) {
+            if (!it) return;
+            if (it.type === 'file') { files++; bytes += new Blob([it.content || '']).size + (it.cloudSize || 0); }
+            else if (it.type === 'folder') folders++;
+        });
+    });
+    return { files: files, folders: folders, size: (bytes > 1048576 ? (bytes / 1048576).toFixed(2) + ' MB' : bytes > 1024 ? (bytes / 1024).toFixed(1) + ' KB' : bytes + ' B') };
+}
+function flattenAll(d) {
+    var out = [];
+    Object.keys(d).forEach(function (k) {
+        (d[k] || []).forEach(function (it) { if (it) out.push(it); });
+    });
+    return out;
+}
+
+function render() {
+    var d = load();
+    var q = (document.getElementById('q').value || '').trim().toLowerCase();
+
+    // chip proyek
+    var chip = document.getElementById('proj-chip');
+    chip.textContent = pid === 'global' ? 'Umum' : 'Proyek ' + pid.slice(0, 8);
+
+    // statistik
+    var st = treeStats(d);
+    document.getElementById('st-files').textContent = st.files;
+    document.getElementById('st-folders').textContent = st.folders;
+    document.getElementById('st-size').textContent = st.size;
+
+    // breadcrumb
+    var c = document.getElementById('crumb');
+    if (q) {
+        c.innerHTML = '<div class="crumb"><span class="cur">Hasil pencarian "' + esc(q) + '"</span></div>';
+    } else {
+        var segs = curPath ? curPath.split('/') : [];
+        var html = '<div class="crumb"><button onclick="goTo(\'\')">Ruang Kerja</button>';
+        var cum = '';
+        for (var i = 0; i < segs.length; i++) {
+            cum = cum ? cum + '/' + segs[i] : segs[i];
+            html += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px;color:#9ca3af;"><path stroke-linecap="round" d="m9 6 6 6-6 6"/></svg>';
+            if (i === segs.length - 1) html += '<span class="cur">' + esc(segs[i]) + '</span>';
+            else html += '<button onclick="goTo(\'' + esc(cum).replace(/'/g, "\\'") + '\')">' + esc(segs[i]) + '</button>';
+        }
+        c.innerHTML = html + '</div>';
+    }
+
+    // daftar
+    var list = document.getElementById('list');
+    var items;
+    if (q) {
+        items = flattenAll(d).filter(function (it) { return it.name && it.name.toLowerCase().indexOf(q) !== -1; });
+    } else {
+        items = (d[keyOf(curPath)] || []).slice(0);
+        items.sort(function (a, b) {
+            if ((a.type === 'folder') !== (b.type === 'folder')) return a.type === 'folder' ? -1 : 1;
+            return String(a.name).localeCompare(String(b.name), 'id');
+        });
+    }
+
+    if (!items.length) {
+        list.innerHTML = '<div style="padding:44px 16px;text-align:center;">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:34px;height:34px;color:#c7cdd6;margin:0 auto 10px;display:block;"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>' +
+            '<p style="font-size:13px;font-weight:700;margin:0 0 3px;">' + (q ? 'Tidak ada hasil.' : 'Ruang kerja masih kosong') + '</p>' +
+            '<p style="font-size:12px;color:#9ca3af;font-weight:500;margin:0;">' + (q ? 'Coba kata kunci lain.' : 'Buat file atau folder pertamamu lewat tombol di atas.') + '</p></div>';
+        return;
+    }
+
+    list.innerHTML = items.map(function (it) {
+        var isFolder = it.type === 'folder';
+        var sub = isFolder ? (countUnder(load(), it.path) + ' file') : (it.cloud ? 'Tersimpan di cloud' : (it.size || sizeLabel(it.content)) + ' \u00b7 terakhir diubah di Clincoo');
+        var icon = isFolder
+            ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>'
+            : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>';
+        var openCall = isFolder ? 'goTo(' + esc(jsStr(it.path)) + ')' : 'openFile(' + esc(jsStr(it.path)) + ')';
+        var actRename = 'renameItem(' + esc(jsStr(it.path)) + ',' + (isFolder ? '1' : '0') + ')';
+        var actDelete = 'deleteItem(' + esc(jsStr(it.path)) + ',' + (isFolder ? '1' : '0') + ')';
+        var dl = (!isFolder && it.content && !it.cloud) ? '<button type="button" title="Unduh" onclick="event.stopPropagation();downloadFile(' + esc(jsStr(it.path)) + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></button>' : '';
+        return '<div class="row" onclick="' + openCall + '">' +
+            '<div class="ic' + (isFolder ? '' : ' is-file') + '">' + icon + '</div>' +
+            '<div class="meta"><p class="name">' + esc(it.name) + '</p><p class="sub">' + esc(sub) + '</p></div>' +
+            '<div class="act">' + dl +
+            '<button type="button" title="Ganti nama" onclick="event.stopPropagation();' + actRename + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>' +
+            '<button type="button" class="danger" title="Hapus" onclick="event.stopPropagation();' + actDelete + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
+            '</div></div>';
+    }).join('');
+}
+function jsStr(x) { return "'" + String(x == null ? '' : x).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'"; }
+
+function goTo(path) { curPath = path || ''; document.getElementById('q').value = ''; render(); }
+function goBack() {
+    try {
+        var sameOrigin = document.referrer && new URL(document.referrer).origin === location.origin;
+        if (sameOrigin && history.length > 1) { history.back(); return; }
+    } catch (e) {}
+    location.replace('/');
+}
+
+/* ==== Aksi ==== */
+function newFolder() {
+    var name = prompt('Nama folder baru:');
+    if (!name || !name.trim()) return;
+    name = name.trim().replace(/\//g, '-');
+    var d = load();
+    var key = keyOf(curPath);
+    var path = curPath ? curPath + '/' + name : name;
+    if (!Array.isArray(d[key])) d[key] = [];
+    if (d[key].some(function (i) { return i && i.path.toLowerCase() === path.toLowerCase(); })) { alert('Sudah ada item bernama itu di sini.'); return; }
+    d[key].push({ type: 'folder', name: name, path: path, fileCount: 0, previewText: 'Folder' });
+    persist(d); render();
+}
+function newFile() { editMode = null; openModal('File baru', '', ''); }
+function openFile(path) {
+    var d = load();
+    var it = null, key = keyOf(parentOf(path));
+    (d[key] || []).forEach(function (i) { if (i && i.path === path) it = i; });
+    if (!it) return;
+    if (it.cloud) {
+        editMode = null;
+        openModal(it.name, it.name, '');
+        document.getElementById('f-content').style.display = 'none';
+        var h = document.getElementById('f-hint');
+        h.style.display = 'block';
+        h.textContent = 'File besar ini tersimpan di cloud Clincoo — isinya bisa diakses dari editor Clincoo. Di sini kamu bisa ganti nama atau hapus.';
+        document.getElementById('f-save').style.display = 'none';
+        return;
+    }
+    editMode = { path: path };
+    openModal('Edit file', it.name, it.content || '');
+}
+function saveModal() {
+    var name = (document.getElementById('f-name').value || '').trim().replace(/\//g, '-');
+    var content = document.getElementById('f-content').value;
+    if (!name) { alert('Beri nama file dulu.'); return; }
+    var d = load();
+    if (editMode) {
+        var key = keyOf(parentOf(editMode.path));
+        var arr = d[key] || [];
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i] && arr[i].path === editMode.path) {
+                arr[i].name = name;
+                arr[i].path = parentOf(editMode.path) ? parentOf(editMode.path) + '/' + name : name;
+                arr[i].content = content;
+                arr[i].size = sizeLabel(content);
+                break;
+            }
+        }
+        persist(d); closeModal(); render();
+    } else {
+        var key2 = keyOf(curPath);
+        var path = curPath ? curPath + '/' + name : name;
+        if (!Array.isArray(d[key2])) d[key2] = [];
+        if (d[key2].some(function (x) { return x && x.path.toLowerCase() === path.toLowerCase(); })) { alert('Nama sudah dipakai di folder ini.'); return; }
+        d[key2].push({ type: 'file', name: name, path: path, content: content, size: sizeLabel(content) });
+        persist(d); closeModal(); render();
+    }
+}
+function renameItem(path, isFolder) {
+    var d = load();
+    var cur = isFolder ? path : baseName(path);
+    var nn = prompt('Ganti nama:', cur);
+    if (!nn || !nn.trim() || nn.trim() === cur) return;
+    nn = nn.trim().replace(/\//g, '-');
+    if (isFolder) {
+        var np = parentOf(path) ? parentOf(path) + '/' + nn : nn;
+        Object.keys(d).forEach(function (k) {
+            if (k === path) { d[np] = d[k]; delete d[k]; }
+            else if (k.indexOf(path + '/') === 0) { var nk = np + k.slice(path.length); d[nk] = d[k]; delete d[k]; }
+        });
+        Object.keys(d).forEach(function (k) {
+            (d[k] || []).forEach(function (it) {
+                if (!it || !it.path) return;
+                if (it.path === path) { it.path = np; it.name = nn; }
+                else if (it.path.indexOf(path + '/') === 0) { it.path = np + it.path.slice(path.length); }
+            });
+        });
+        if (curPath === path) curPath = np;
+        else if (curPath.indexOf(path + '/') === 0) curPath = np + curPath.slice(path.length);
+    } else {
+        var key = keyOf(parentOf(path));
+        (d[key] || []).forEach(function (it) {
+            if (it && it.path === path) { it.name = nn; it.path = parentOf(path) ? parentOf(path) + '/' + nn : nn; }
+        });
+    }
+    persist(d); render();
+}
+function deleteItem(path, isFolder) {
+    if (!confirm(isFolder ? 'Hapus folder ini beserta isinya?' : 'Hapus file ini?')) return;
+    var d = load();
+    if (isFolder) {
+        Object.keys(d).forEach(function (k) { if (k === path || k.indexOf(path + '/') === 0) delete d[k]; });
+        var pkey = keyOf(parentOf(path));
+        d[pkey] = (d[pkey] || []).filter(function (it) { return !(it && it.path === path); });
+        if (curPath === path || curPath.indexOf(path + '/') === 0) curPath = parentOf(path) || '';
+    } else {
+        var key = keyOf(parentOf(path));
+        d[key] = (d[key] || []).filter(function (it) { return !(it && it.path === path); });
+    }
+    persist(d); render();
+}
+function downloadFile(path) {
+    var d = load();
+    var it = null;
+    (d[keyOf(parentOf(path))] || []).forEach(function (i) { if (i && i.path === path) it = i; });
+    if (!it || it.cloud) return;
+    var blob = new Blob([it.content || ''], { type: 'text/plain;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = it.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1500);
+}
+
+/* ==== Modal ==== */
+function openModal(title, name, content) {
+    document.getElementById('modal-title').textContent = title;
+    var n = document.getElementById('f-name'); n.value = name;
+    var c = document.getElementById('f-content'); c.value = content; c.style.display = 'block';
+    document.getElementById('f-save').style.display = '';
+    document.getElementById('f-hint').style.display = 'none';
+    document.getElementById('modal').style.display = 'flex';
+    setTimeout(function () { c.focus(); }, 60);
+}
+function closeModal() { document.getElementById('modal').style.display = 'none'; editMode = null; }
+document.getElementById('modal').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+
+render();
+</script>
+</body>
+</html>

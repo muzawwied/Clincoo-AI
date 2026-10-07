@@ -453,7 +453,7 @@
         body.dark-mode .sidebar-profile .sp-name { color: #f3f4f6; }
 
         /* ==== [7 Okt 2026, arahan owner] CTA chat baru + popover aksi history + komposer rapih ==== */
-        .new-chat-cta { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 11px 14px; margin: 4px 0 6px; border: none; border-radius: 999px; background: #111827; color: #ffffff; font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.18s ease, transform 0.15s ease; font-family: inherit; }
+        .new-chat-cta { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 11px 14px; margin: 16px 0 10px; border: none; border-radius: 999px; background: #111827; color: #ffffff; font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.18s ease, transform 0.15s ease; font-family: inherit; }
         .new-chat-cta svg { width: 15px; height: 15px; }
         .new-chat-cta:hover { background: #000000; }
         .new-chat-cta:active { transform: scale(0.98); }
@@ -484,18 +484,31 @@
         body.dark-mode #chat-input-card:focus-within { border-color: rgba(255,255,255,0.28); box-shadow: 0 12px 44px rgba(0,0,0,0.65), 0 0 0 4px rgba(255,255,255,0.06); }
         #upload-menu { background: rgba(255,255,255,0.92) !important; -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5); }
         body.dark-mode #upload-menu { background-color: rgba(16,16,16,0.82) !important; }
-        #sidebar-toggle, #header-more-btn, #chat-header-capsule, .chat-hdr-pill, #header-more-menu {
-            background: rgba(255,255,255,0.7) !important;
-            -webkit-backdrop-filter: blur(16px) saturate(1.6);
-            backdrop-filter: blur(16px) saturate(1.6);
+        /* Bar header glass dari ujung ke ujung; tombol di atasnya polos */
+        body > header {
+            background: rgba(255,255,255,0.55) !important;
+            -webkit-backdrop-filter: blur(20px) saturate(1.7);
+            backdrop-filter: blur(20px) saturate(1.7);
+            border-bottom: 1px solid rgba(17,24,39,0.06);
         }
-        #sidebar-toggle, #header-more-btn, #chat-header-capsule { border-color: rgba(17,24,39,0.08) !important; }
-        body.dark-mode #sidebar-toggle, body.dark-mode #header-more-btn, body.dark-mode #chat-header-capsule, body.dark-mode .chat-hdr-pill, body.dark-mode #header-more-menu {
-            background: rgba(20,20,20,0.6) !important;
-            -webkit-backdrop-filter: blur(16px) saturate(1.6);
-            backdrop-filter: blur(16px) saturate(1.6);
+        body.dark-mode > header {
+            background: rgba(10,10,10,0.5) !important;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
         }
-        body.dark-mode #sidebar-toggle, body.dark-mode #header-more-btn, body.dark-mode #chat-header-capsule { border-color: rgba(255,255,255,0.14) !important; }
+        #header-more-menu {
+            background: rgba(255,255,255,0.92) !important;
+            -webkit-backdrop-filter: blur(18px) saturate(1.5);
+            backdrop-filter: blur(18px) saturate(1.5);
+        }
+        #sidebar-toggle, #header-more-btn, #chat-header-capsule, .chat-hdr-pill {
+            background: transparent !important;
+            border-color: transparent !important;
+            box-shadow: none !important;
+            -webkit-backdrop-filter: none !important;
+            backdrop-filter: none !important;
+        }
+        #sidebar-toggle:hover, #header-more-btn:hover, .chat-hdr-pill:hover { background: rgba(17,24,39,0.06) !important; }
+        body.dark-mode #sidebar-toggle:hover, body.dark-mode #header-more-btn:hover, body.dark-mode .chat-hdr-pill:hover { background: rgba(255,255,255,0.1) !important; }
         #bg-glow { position: fixed; inset: 0; z-index: 0; pointer-events: none;
             background:
                 radial-gradient(620px 400px at 10% -8%, rgba(99,102,241,0.10), transparent 62%),
@@ -863,12 +876,12 @@
     
     <div id="session-options-popup" class="hidden fixed bg-white rounded-xl shadow-[0_5px_15px_rgba(0,0,0,0.1)] z-[100] w-40 p-1.5"></div>
 
-    <button id="sidebar-toggle" type="button" class="pointer-events-auto flex-shrink-0 flex items-center justify-center text-[#222222] shadow-[0_2px_8px_rgba(0,0,0,0.08)] border hover:text-black transition-all rounded-full w-12 h-12" style="position:fixed;top:12px;left:12px;z-index:31;" aria-label="Menu">
+    <button id="sidebar-toggle" type="button" class="pointer-events-auto flex-shrink-0 flex items-center justify-center text-[#222222] shadow-[0_2px_8px_rgba(0,0,0,0.08)] border hover:text-black transition-all rounded-full w-12 h-12" style="position:fixed;top:8px;left:12px;z-index:31;" aria-label="Menu">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 9h14M5 15h14" />
                 </svg>
             </button>
-    <header class="fixed top-0 left-0 right-0 z-30 px-3 pt-3 pointer-events-none flex justify-end items-center">
+    <header class="fixed top-0 left-0 right-0 z-30 h-16 px-4 pointer-events-none flex justify-end items-center">
         <div id="chat-header-group" class="flex items-center gap-4 flex-shrink-0">
         <div class="pointer-events-auto inline-flex items-center gap-1 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.10)] border border-gray-100/80 rounded-full pl-2 pr-2 h-12" id="chat-header-capsule">
             <nav id="chat-top-nav" class="relative inline-flex items-center h-full">
@@ -1139,6 +1152,7 @@
                 if (!btn) return;
                 navEl.querySelectorAll('.sidebar-nav-item').forEach((b) => b.classList.remove('active'));
                 btn.classList.add('active');
+                if (btn.dataset.menu === 'ruang-kerja') { location.href = '/ruang-kerja/'; return; }
                 if (btn.dataset.menu !== 'chat') sidebarSet(false);
             });
         })();
