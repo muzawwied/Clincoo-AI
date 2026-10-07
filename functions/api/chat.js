@@ -55,8 +55,39 @@ export async function onRequestPost({ request, env }) {
   // [7 Okt 2026] PILIHAN MODEL: klien boleh memilih model via kapsul di samping
   // tombol kirim. model:'qwen3.6' -> jawaban LANGSUNG dari server pribadi (relay
   // Ollama), melewati dataset/sapaan/identitas. Rantai lama tidak berubah.
+  // [8 Okt, arahan pemilik] Model 'swarm': gateway ModelVerse (OpenAI-compat).
+  const wantSwarm = String(body.model || '').trim() === 'swarm';
   const wantQwen = String(body.model || '').trim() === 'qwen3.6';
-  if (wantQwen) {
+  if (wantSwarm) {
+    // Swarm (ModelVerse): jawaban langsung dari gateway, melewati dataset/sapaan.
+    const mvMessages = (Array.isArray(messagesIn) ? messagesIn : [{ role: 'user', content: message }])
+      .map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: String(typeof m.content === 'string' ? m.content : JSON.stringify(m.content || '')).slice(0, 4000) }))
+      .slice(-16);
+    let mvText = '';
+    try {
+      const mvRes = await fetch('https://modelverse-hub-70.lovable.app/api/public/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer mlk_RJo9kvKdga-5-zaJnIpKOPWfBdgXFaLu6HwF-xO67PwV9DxGBLsAI05yG-VUGqAQiyLSjP-eXNaOeDe7X9t_FnwHkxAx_L0YDIcqIZjOcq3PsNMbsZtuhywyDxS8ime_Zx0i8vmNd_KoQWXiukqPNtA8x3o6RUsb_Ky3ry2f5g9kLKAJc0IznhsOT6jMJ025b7ms2uhRhjX2Jyd2t_bLth-jeiN9MUrS1pk8LasoUoxICJhSp76CHKjwuSRkmq3ZPeASRApfBh98qLfV6lcT4R2WbJUnadRtz4PS6L2oo7Wegc-UKKVH5KIawCvYvai5zUGwm7eE9GArg1kqtibILuP5hM0k1Vqy1R8mv3PFfvXD12yxx6wopTkBC4MYjbdQEEN8b-C06q7Ziv-7IxBD4nGXHGlbF4wrXYz4MXNXTRFKjP5LTe3JG2xOlE0FkBZ5O_Excri7KJNMz3AcX-1uihlpDYXt5EsCA5bQT4rmXIZZA8SblVSIDNxX8ua7o0wSIBV1sE_eQAYr3LW26LQB7bdDbyiiV5bqAvhlIjXsYm63WRnt0OduLvlMjqHc27aS6Ix06tBDMNoNmLi3B68ebqvdsKAMk0VNSzk6rauedreo8ulbhewACYVkP85UiYK6cTLvfxyVIKPnYs7yy4enJgyGVOJrMiY-nlXpYxB8eAygd_OXkiz3Vuf9FLF4nfNYK4pWH1nmwOpaJ8BCgtLD8JtuFMjiD4z-piqkuJ71jtcYq-Iif_uh3jLk2EJi241gXxZOYB6e3Ep_OW5Pvy7hBpo5OamPfpiH14TQhdT1TxTYO4btBAy1NbLv5BUzGsPedurzTjDY-xeiT4FPExEixw_NJHYBKUZUXxbJ-rFtfMtpKO57Am886NZKsXkyD8l2R0LVGG8Lf8sUihHxEyFRmyAen7lHKulD54uTeu6KLI8xphpxF-yhx6G7Sb-qwOWUU_DvhgpAFpNf7rlY0w3u0rT91j3FCdqHGawB3UKJz7MZTI5cU5cFR-Hn0Cie-qAZtwCBn51ZFeTtP66dHJDRLcuBeOs95NIS5bSey6gYwH9f0ZTwZsvXn64RBDcRBNow15CwdxmK4rA5ZmNsIUrHsBSwX0Er_9-JtGgxmV0XcDf7GJP3nAzbN6FdIa1GDoPGCCjvK9urS1bZb0RnwsRfoFvRPR1rEPxk3IgRJA65lcsEcqrNXd_hVt4kumgP23lqmLA7954VuNdKvkBAW7Ek3iWhckE0Klmh-5MrThkjtu_0uTWBTBpOLAj-6cYb1Q24bdbDH4fZ3gapaJ8h9O4kUrE_Pp-gbpz8cTM9ofwKCYUKv9X5-kBtCaTuIvj0LQStcGtM8VhGf3UNgEAG4sDwBxLOj4mrMM7WXsvOAaYNzoGdW3hpMqEqez5_F--7K58f61554rJgSUb-JjkxkDgfZ3mGwFxYR2llsd7bsxsgPDPRC4L3oiJFTfr2N6ECYuGpxwLs0kV4VAd5-cayxCjKf7IWJegYm_QvF65z34fHVaiG4iC2v7rU6XUGA9ZG3JnY7d4I' },
+        body: JSON.stringify({ model: 'swarm', messages: mvMessages })
+      });
+      if (!mvRes.ok) throw new Error('HTTP ' + mvRes.status);
+      const mvData = await mvRes.json();
+      mvText = String((mvData && mvData.choices && mvData.choices[0] && mvData.choices[0].message && mvData.choices[0].message.content) || '').trim();
+    } catch (mvErr) {
+      mvText = '';
+    }
+    if (mvText) {
+      reply = mvText;
+      tutored = true;
+      tutorModel = 'Swarm (ModelVerse)';
+      source = 'model';
+      matchedPrompt = '(dijawab langsung oleh Swarm)';
+      const savedMv = await saveTraining(env.DB, message, mvText);
+      matchedId = savedMv && savedMv.id ? savedMv.id : null;
+    } else {
+      reply = 'Model Swarm sedang tidak bisa dihubungi. Silakan pilih model Orkestra-1 Mini dulu atau kirim ulang pesanmu ya.';
+    }
+  } else if (wantQwen) {
     const q = await askOllamaDirect(env, message, messagesIn);
     if (q) {
       reply = q.answer;
