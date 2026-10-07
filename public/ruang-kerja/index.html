@@ -136,6 +136,10 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="m20 20-3.2-3.2"/></svg>
             <input id="q" type="text" placeholder="Cari file atau folder…" oninput="render()">
         </label>
+        <button type="button" class="btn btn-ghost" onclick="cloudPull(true)" title="Tarik data terbaru dari cloud">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 6.4M20 4v7h-7"/></svg>
+            Sinkron
+        </button>
         <button type="button" class="btn btn-ghost" onclick="newFolder()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M12 11v5M9.5 13.5h5"/></svg>
             Folder
@@ -448,7 +452,71 @@ function closeModal() { document.getElementById('modal').style.display = 'none';
 document.getElementById('modal').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
 
+/* ==== Sinkron dari cloud (D1 Clincoo) — data MCP & AI eksternal muncul di sini ==== */
+function bytesLabel(b) {
+    if (b > 1048576) return (b / 1048576).toFixed(2) + ' MB';
+    if (b > 1024) return (b / 1024).toFixed(1) + ' KB';
+    return b + ' B';
+}
+function unflatten(files) {
+    var data = { root: [] };
+    function ensureChain(fk) {
+        if (fk === 'root') return;
+        var parts = fk.split('/').filter(Boolean), parent = 'root', cum = '';
+        parts.forEach(function (part) {
+            cum = cum ? cum + '/' + part : part;
+            if (!Array.isArray(data[parent])) data[parent] = [];
+            if (!data[parent].some(function (i) { return i && i.type === 'folder' && i.name.toLowerCase() === part.toLowerCase(); }))
+                data[parent].push({ type: 'folder', name: part, path: cum, fileCount: 0, previewText: 'Folder' });
+            if (!Array.isArray(data[cum])) data[cum] = [];
+            parent = cum;
+        });
+    }
+    (files || []).forEach(function (f) {
+        var p = String((f && f.path) || '').trim();
+        var content = (f && f.content) || '';
+        var isBig = !!(f && f.is_big);
+        var sz = Number(f && f.size) || 0;
+        if (p.slice(-1) === '/') { ensureChain(p.slice(0, -1)); return; }
+        var parts = p.split('/').filter(Boolean);
+        var name = parts.pop();
+        if (!name) return;
+        var fk = parts.length ? parts.join('/') : 'root';
+        ensureChain(fk);
+        if (!Array.isArray(data[fk])) data[fk] = [];
+        if (!data[fk].some(function (i) { return i.path.toLowerCase() === p.toLowerCase(); }))
+            data[fk].push({ type: 'file', name: name, size: isBig ? bytesLabel(sz) : sizeLabel(content), path: p, content: isBig ? '' : content, cloud: isBig || undefined, cloudSize: sz || undefined });
+    });
+    return data;
+}
+var __pullBusy = false;
+function cloudPull(manual) {
+    try {
+        var realPid = localStorage.getItem(PID_KEY) || '';
+        if (!realPid) { if (manual) alert('Pilih proyek Clincoo dulu (buka proyeknya di Clincoo) agar data cloud bisa ditarik.'); return; }
+        if (__pullBusy) return;
+        __pullBusy = true;
+        var tk = localStorage.getItem('clincoo_auth_token') || localStorage.getItem('clincoo_token') || '';
+        var base = (['clincoo-be2.pages.dev','modela.pages.dev','www.clinqoo.biz.id','clincoo-ai.pages.dev','localhost','127.0.0.1'].indexOf(location.hostname) === -1) ? 'https://clincoo-be2.pages.dev/api' : '/api';
+        fetch(base + '/project-files?project_id=' + encodeURIComponent(realPid), { headers: tk ? { Authorization: 'Bearer ' + tk } : {} })
+            .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+            .then(function (d) {
+                __pullBusy = false;
+                var files = (d && d.files) || [];
+                if (!files.length) { if (manual) alert('Workspace cloud proyek ini kosong.'); return; }
+                var mergedStr = JSON.stringify(unflatten(files));
+                if (mergedStr !== localStorage.getItem(storeKey())) {
+                    try { localStorage.setItem(storeKey(), mergedStr); } catch (e) {}
+                    render();
+                }
+                if (manual) alert('Sinkron selesai: ' + files.length + ' item dari cloud.');
+            })
+            .catch(function () { __pullBusy = false; if (manual) alert('Gagal menarik data cloud. Coba lagi sebentar.'); });
+    } catch (e) { __pullBusy = false; }
+}
+
 render();
+cloudPull(false);
 </script>
 </body>
 </html>
