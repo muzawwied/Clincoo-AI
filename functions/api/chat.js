@@ -8,8 +8,8 @@ const FALLBACK = 'Aku belum dilatih untuk pertanyaan itu, jadi aku tidak akan me
 
 // Identitas asisten: pertanyaan "kamu siapa / nama kamu apa" dijawab langsung,
 // tidak bergantung data latihan.
-const MODEL_ANSWER = 'Aku Clincoo Vy-1.1, model AI yang dikembangkan oleh Vylonium untuk menjadi otak Clincoo AI. \u{1F60A}\n\nAku terus belajar dari setiap obrolan — pengetahuanku disuling dan disimpan secara efisien, jadi makin sering kita berinteraksi, makin paham aku kebutuhanmu.\n\nAda yang bisa kubantu hari ini?';
-const IDENTITY_ANSWER = 'Aku Clincoo AI, asisten superagent dari Clincoo. Otakku Clincoo Vy-1.1, model distilasi yang dikembangkan oleh Vylonium. \u{1F60A}\n\nAku bukan chatbot pasif — aku rekan yang suka menjelaskan dengan detail, contoh, dan analogi sampai kamu benar-benar paham. Aku terus belajar dari setiap obrolan: pengetahuanku tumbuh dari pelajaran terkurasi dan yang kucari sendiri, jadi makin sering kita ngobrol makin paham aku soal kebutuhanmu.\n\nKalau ada hal yang belum kutahu, aku jujur bilang dan langsung kupelajari saat itu juga. Silakan tanya apa saja, dari pengetahuan umum sampai cuma obrolan santai.';
+const MODEL_ANSWER = 'Aku Orkestra-1 Mini, AI Agent yang dikembangkan oleh Clincoo. \u{1F60A}\n\nAku terus belajar dari setiap obrolan — pengetahuanku disuling dan disimpan secara efisien, jadi makin sering kita berinteraksi, makin paham aku kebutuhanmu.\n\nAda yang bisa kubantu hari ini?';
+const IDENTITY_ANSWER = 'Aku Orkestra-1 Mini, AI Agent yang dikembangkan oleh Clincoo. \u{1F60A}\n\nAku bukan chatbot pasif — aku rekan yang suka menjelaskan dengan detail, contoh, dan analogi sampai kamu benar-benar paham. Aku terus belajar dari setiap obrolan: pengetahuanku tumbuh dari pelajaran terkurasi dan yang kucari sendiri, jadi makin sering kita ngobrol makin paham aku soal kebutuhanmu.\n\nKalau ada hal yang belum kutahu, aku jujur bilang dan langsung kupelajari saat itu juga. Silakan tanya apa saja, dari pengetahuan umum sampai cuma obrolan santai.';
 function isIdentityQuestion(message) {
   const q = String(message || '').toLowerCase();
   if (/who are you|perkenalkan diri|perkenalkan dirimu/.test(q)) return true;
