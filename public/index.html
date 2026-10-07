@@ -452,6 +452,39 @@
         body.dark-mode .sidebar-profile img { border-color: rgba(255,255,255,0.15); }
         body.dark-mode .sidebar-profile .sp-name { color: #f3f4f6; }
 
+        /* ==== [7 Okt 2026, arahan owner] CTA chat baru + popover aksi history + komposer rapih ==== */
+        .new-chat-cta { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 11px 14px; margin: 4px 0 6px; border: none; border-radius: 999px; background: #111827; color: #ffffff; font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.18s ease, transform 0.15s ease; font-family: inherit; }
+        .new-chat-cta svg { width: 15px; height: 15px; }
+        .new-chat-cta:hover { background: #000000; }
+        .new-chat-cta:active { transform: scale(0.98); }
+        body.dark-mode .new-chat-cta { background: #ffffff; color: #0a0a0a; }
+        body.dark-mode .new-chat-cta:hover { background: #e5e5e5; }
+        .sidebar-hist-item .hist-title { flex: 1; min-width: 0; }
+        .hist-more { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 8px; color: #9ca3af; flex-shrink: 0; cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }
+        .hist-more svg { width: 14px; height: 14px; stroke-width: 2.4; }
+        .hist-more:hover { background: #e5e7eb; color: #111827; }
+        body.dark-mode .hist-more:hover { background: #2a2a2a; color: #ffffff; }
+        .hist-pop { position: fixed; z-index: 60; min-width: 160px; background: #ffffff; border: 1px solid #f3f4f6; border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.16); padding: 5px; display: flex; flex-direction: column; gap: 1px; }
+        .hist-pop[hidden] { display: none; }
+        .hist-pop button { display: flex; align-items: center; gap: 9px; padding: 9px 11px; border: none; background: transparent; border-radius: 10px; font-size: 12.5px; font-weight: 600; color: #374151; text-align: left; cursor: pointer; transition: background 0.15s ease; font-family: inherit; }
+        .hist-pop button svg { width: 14px; height: 14px; stroke-width: 2; }
+        .hist-pop button:hover { background: #f3f4f6; }
+        .hist-pop button[data-act="delete"] { color: #dc2626; }
+        .hist-pop button[data-act="delete"]:hover { background: #fef2f2; }
+        body.dark-mode .hist-pop { background: #141414; border-color: rgba(255,255,255,0.14); box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
+        body.dark-mode .hist-pop button { color: #d1d5db; }
+        body.dark-mode .hist-pop button:hover { background: #1f1f1f; }
+        body.dark-mode .hist-pop button[data-act="delete"] { color: #f87171; }
+        body.dark-mode .hist-pop button[data-act="delete"]:hover { background: #2a1414; }
+        /* Komposer & pop-up upload versi rapih */
+        #chat-input-card:focus-within { border-color: #d1d5db; box-shadow: 0 8px 32px rgba(0,0,0,0.10); }
+        body.dark-mode #chat-input-card:focus-within { border-color: rgba(255,255,255,0.3); box-shadow: 0 8px 32px rgba(0,0,0,0.6); }
+        #upload-menu .up-tile { width: 36px; height: 36px; border-radius: 12px; background: #f3f4f6; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s ease; }
+        #upload-menu .up-title { display: block; font-size: 13px; font-weight: 600; line-height: 1.2; color: #111827; }
+        #upload-menu .up-sub { display: block; font-size: 11px; color: #9ca3af; line-height: 1.35; margin-top: 2px; }
+        body.dark-mode #upload-menu .up-tile { background: #1f1f1f; }
+        body.dark-mode #upload-menu .up-title { color: #f3f4f6; }
+
         .tc-spin { display: inline-block; animation: tc-spin-anim 0.9s linear infinite; }
         @keyframes tc-spin-anim { to { transform: rotate(360deg); } }
 
@@ -905,8 +938,22 @@
                     Kredit
                 </button>
             </nav>
+            <button type="button" id="sidebar-new-chat" class="new-chat-cta">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                Chat baru
+            </button>
             <p class="sidebar-sec-title">History Chat</p>
             <div class="sidebar-hist" id="sidebar-history"></div>
+            <div id="hist-actions-pop" class="hist-pop" hidden>
+                <button type="button" data-act="rename">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                    Ganti nama
+                </button>
+                <button type="button" data-act="delete">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                    Hapus
+                </button>
+            </div>
         </div>
         <div class="sidebar-profile">
             <img src="assets/avatar-vylonium.jpg" alt="Foto profile Vylonium">
@@ -931,7 +978,7 @@
 
     <footer id="chat-input-footer" class="fixed bottom-0 left-0 right-0 w-full bg-transparent px-4 py-4 z-20 pointer-events-none flex flex-col justify-end">
         <div id="prompt-chips" class="hidden w-full max-w-4xl mx-auto overflow-x-auto hide-scrollbar gap-2 px-1 pb-2 pointer-events-auto"></div>
-        <div id="chat-input-card" class="w-full bg-white rounded-[26px] shadow-[0_4px_24px_rgba(0,0,0,0.10)] p-4 sm:p-5 transition-all text-left border border-gray-100/80 pointer-events-auto max-w-4xl mx-auto">
+        <div id="chat-input-card" class="w-full bg-white rounded-[22px] shadow-[0_6px_24px_rgba(0,0,0,0.07)] p-4 transition-all duration-200 text-left border border-gray-200/90 pointer-events-auto max-w-4xl mx-auto">
             <div id="quota-banner" class="hidden items-center justify-between gap-3 mb-2 rounded-xl bg-gray-50 px-3 py-2">
                 <p id="quota-banner-text" class="text-[11px] sm:text-xs text-gray-500 leading-snug flex-1">Kredit habis — upgrade untuk lanjut.</p>
                 <a href="#" id="quota-retry-btn" class="text-[11px] sm:text-xs font-semibold text-gray-900 shrink-0 cursor-pointer whitespace-nowrap inline-flex items-center gap-0.5 hover:opacity-60 transition-opacity">Pilih Paket<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M7 7h10v10"></path></svg></a>
@@ -953,14 +1000,25 @@
                         </svg>
                     </button>
                     
-                    <div id="upload-menu" class="absolute bottom-full left-0 mb-2 w-56 bg-white text-gray-800 border border-gray-100 rounded-xl shadow-xl p-1.5 flex flex-col gap-1 opacity-0 invisible translate-y-2 pointer-events-none transition-all duration-300 z-50 origin-bottom-left">
-                        <button id="upload-file-btn" class="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 rounded-lg transition-colors text-sm font-medium text-left cursor-pointer">
-                            <svg class="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
-                            Upload file
+                    <div id="upload-menu" class="absolute bottom-full left-0 mb-3 w-72 bg-white text-gray-900 border border-gray-200/80 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.15)] p-2 flex flex-col gap-0.5 opacity-0 invisible translate-y-2 pointer-events-none transition-all duration-300 z-50 origin-bottom-left">
+                        <p class="px-2.5 pt-1.5 pb-1 text-[10.5px] font-bold uppercase tracking-wider text-gray-400">Lampirkan</p>
+                        <button id="upload-file-btn" class="w-full flex items-center gap-3 px-2.5 py-2.5 hover:bg-gray-50 rounded-xl transition-colors text-left cursor-pointer">
+                            <span class="up-tile">
+                                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+                            </span>
+                            <span class="min-w-0">
+                                <span class="up-title">Upload file</span>
+                                <span class="up-sub">Dokumen, PDF, kode, teks</span>
+                            </span>
                         </button>
-                        <button id="upload-image-btn" class="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 rounded-lg transition-colors text-sm font-medium text-left cursor-pointer">
-                            <svg class="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            Upload gambar
+                        <button id="upload-image-btn" class="w-full flex items-center gap-3 px-2.5 py-2.5 hover:bg-gray-50 rounded-xl transition-colors text-left cursor-pointer">
+                            <span class="up-tile">
+                                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            </span>
+                            <span class="min-w-0">
+                                <span class="up-title">Upload gambar</span>
+                                <span class="up-sub">JPG, PNG, WebP, GIF</span>
+                            </span>
                         </button>
                     </div>
                     
@@ -1078,7 +1136,7 @@
             try {
                 for (let i = 0; i < localStorage.length; i++) {
                     const k = localStorage.key(i);
-                    if (!k || k.indexOf('clincoo_ls_chat_') !== 0 || k.endsWith('_session')) continue;
+                    if (!k || k.indexOf('clincoo_ls_chat_') !== 0 || k.endsWith('_session') || k.endsWith('_title')) continue;
                     const log = JSON.parse(localStorage.getItem(k) || '[]');
                     if (!Array.isArray(log) || !log.length) continue;
                     const firstUser = log.find((m) => m && m.role === 'user' && m.text);
@@ -1086,10 +1144,9 @@
                     let t = 0;
                     for (const m of log) { if (m && m.time && m.time > t) t = m.time; }
                     // Judul utama: buatan AI (disimpan setelah percakapan pertama).
-                    // Sementara menunggu judul AI, tampilkan potongan pesan pertama.
                     let aiTitle = null;
                     try { aiTitle = (JSON.parse(localStorage.getItem(k + '_title') || 'null') || {}).title || null; } catch (er2) {}
-                    items.push({ title: aiTitle || String(firstUser.text).slice(0, 60), last: t || 0 });
+                    items.push({ key: k, title: aiTitle || String(firstUser.text).slice(0, 60), last: t || 0 });
                 }
             } catch (er) {}
             items.sort((a, b) => b.last - a.last);
@@ -1098,10 +1155,85 @@
                 return;
             }
             box.innerHTML = items.slice(0, 12).map((it) =>
-                '<button type="button" class="sidebar-hist-item" title="' + it.title.replace(/"/g, '&quot;') + '">' +
+                '<button type="button" class="sidebar-hist-item" data-key="' + it.key + '" title="' + it.title.replace(/"/g, '&quot;') + '">' +
                 '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' +
-                '<span class="hist-title">' + it.title.replace(/</g, '&lt;') + '</span></button>').join('');
+                '<span class="hist-title">' + it.title.replace(/</g, '&lt;') + '</span>' +
+                '<span class="hist-more" role="button" aria-label="Aksi percakapan" title="Aksi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></span>' +
+                '</button>').join('');
         }
+
+        // ==== [7 Okt 2026, arahan owner] Chat baru (CTA) + popover aksi history ====
+        function __lsCurKey() {
+            try {
+                let pid = (typeof currentProjectId !== 'undefined' && currentProjectId) ? String(currentProjectId) : 'global';
+                return 'clincoo_ls_chat_' + pid;
+            } catch (er) { return 'clincoo_ls_chat_global'; }
+        }
+        function startNewChatHard() {
+            try { if (typeof isGenerating !== 'undefined' && isGenerating && typeof stopGeneration === 'function') stopGeneration(); } catch (er) {}
+            const k = __lsCurKey();
+            try {
+                localStorage.removeItem(k);
+                localStorage.removeItem(k + '_session');
+                localStorage.removeItem(k + '_title');
+            } catch (er) {}
+            try { location.reload(); } catch (er) {}
+        }
+        (function () {
+            const cta = document.getElementById('sidebar-new-chat');
+            if (cta) cta.addEventListener('click', () => { startNewChatHard(); });
+
+            const histBox = document.getElementById('sidebar-history');
+            const pop = document.getElementById('hist-actions-pop');
+            if (!histBox || !pop) return;
+            let popKey = null, popTitle = '';
+            const hidePop = function () { pop.hidden = true; popKey = null; popTitle = ''; };
+            histBox.addEventListener('click', (e) => {
+                const more = e.target.closest('.hist-more');
+                if (!more) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const item = more.closest('.sidebar-hist-item');
+                if (!item || !item.dataset.key) return;
+                popKey = item.dataset.key;
+                const ttl = item.querySelector('.hist-title');
+                popTitle = ttl ? ttl.textContent : '';
+                pop.hidden = false;
+                const pw = pop.offsetWidth || 160, ph = pop.offsetHeight || 90;
+                const r = more.getBoundingClientRect();
+                let left = r.right - pw + 6;
+                let top = r.bottom + 6;
+                if (top + ph > window.innerHeight - 8) top = r.top - ph - 6;
+                pop.style.left = Math.max(8, left) + 'px';
+                pop.style.top = top + 'px';
+            });
+            pop.addEventListener('click', (e) => {
+                const btn = e.target.closest('button[data-act]');
+                if (!btn || !popKey) return;
+                const k = popKey, t0 = popTitle;
+                hidePop();
+                if (btn.dataset.act === 'rename') {
+                    const t = prompt('Ganti judul percakapan', t0 || '');
+                    if (t && t.trim()) {
+                        try { localStorage.setItem(k + '_title', JSON.stringify({ title: t.trim().slice(0, 60), t: Date.now() })); } catch (er) {}
+                        renderSidebarHistory();
+                    }
+                } else if (btn.dataset.act === 'delete') {
+                    if (!confirm('Hapus percakapan ini dari riwayat?')) return;
+                    try {
+                        localStorage.removeItem(k);
+                        localStorage.removeItem(k + '_session');
+                        localStorage.removeItem(k + '_title');
+                    } catch (er) {}
+                    if (k === __lsCurKey()) { startNewChatHard(); return; }
+                    renderSidebarHistory();
+                }
+            });
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('#hist-actions-pop') && !e.target.closest('.hist-more')) hidePop();
+            });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hidePop(); });
+        })();
         function sidebarIsOpen() { return !!(sidebarEl && sidebarEl.classList.contains('open')); }
 
         sidebarToggle.addEventListener('click', () => { sidebarSet(!sidebarIsOpen()); });
