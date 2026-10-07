@@ -269,3 +269,48 @@ export function smallTalkReply(message) {
   if (/\b(sampai jumpa|sampai jumpa lagi|bye|dadah|dah|selamat tinggal)\b/.test(m)) return 'Sampai jumpa! Semoga harimu menyenangkan. Aku di sini kalau nanti butuh bantuan lagi.';
   return null;
 }
+
+// ===== [7 Okt 2026] MODE QWEN3.6: jawaban LANGSUNG dari server pribadi =====
+// Dipakai /api/chat hanya bila klien memilih model 'qwen3.6' (kapsul pilihan
+// model di samping tombol kirim). Jalur dataset/guru AI tidak disentuh; kalau
+// relay gagal, pemanggil menampilkan pesan ramahnya sendiri. Riwayat percakapan
+// (max 16 pesan terakhir) ikut dikirim supaya jawaban memakai konteks obrolan.
+export async function askOllamaDirect(env, prompt, msgsIn) {
+  const hist = [];
+  if (Array.isArray(msgsIn) && msgsIn.length) {
+    for (const m of msgsIn) {
+      if (!m || (m.role !== 'user' && m.role !== 'assistant' && m.role !== 'system')) continue;
+      let c = m.content;
+      if (Array.isArray(c)) c = c.filter(b => b && typeof b.text === 'string').map(b => b.text).join('');
+      if (typeof c !== 'string' || !c.trim()) continue;
+      hist.push({ role: m.role, content: c.slice(0, 4000) });
+    }
+  }
+  const last = hist[hist.length - 1];
+  if (!last || last.role !== 'user' || !String(last.content || '').trim()) {
+    hist.push({ role: 'user', content: String(prompt || '').slice(0, 4000) });
+  }
+  if (!hist.length) return null;
+  try {
+    const ollamaBase = env.OLLAMA_ENDPOINT || 'https://solas-f0d9a3e9.base44.app/functions/ollamaRelay';
+    const ollamaUrl = ollamaBase.endsWith('/ollamaRelay') ? ollamaBase : ollamaBase + '/api/chat';
+    const r = await fetch(ollamaUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-relay-key': env.OLLAMA_KEY || '3b40191abb88f71d1fcef672a70737cd09d16cdf55313c2b' },
+      body: JSON.stringify({
+        model: 'qwen3.6',
+        messages: [{ role: 'system', content: CLINCOO_SOUL }, ...hist.slice(-16)],
+        stream: false,
+        think: false,
+        wait: 100,
+        keep_alive: '24h'
+      }),
+      signal: AbortSignal.timeout(110000)
+    });
+    const d = await r.json().catch(() => ({}));
+    const text = d && d.message && d.message.content;
+    if (r.ok && text && String(text).trim()) return { answer: String(text).trim(), model: 'Qwen3.6 (server pribadi)' };
+    console.log('qwen-direct-miss', r.status, String(d && d.error || '').slice(0, 120));
+  } catch (e) { console.log('qwen-direct-err', e && e.message); }
+  return null;
+}

@@ -1,6 +1,6 @@
 // Clincoo — mesin obrolan: pertanyaan dicocokkan ke data latihan (retrieval + skor),
 // di bawah ambang kemiripan Clincoo jujur mengaku belum dilatih.
-import { json, corsPreflight, ensureTables, rateLimit, bestMatch, MATCH_THRESHOLD, askGuruAI, saveTraining, smallTalkReply } from '../helpers.js';
+import { json, corsPreflight, ensureTables, rateLimit, bestMatch, MATCH_THRESHOLD, askGuruAI, askOllamaDirect, saveTraining, smallTalkReply } from '../helpers.js';
 
 export async function onRequestOptions() { return corsPreflight(); }
 
@@ -52,7 +52,24 @@ export async function onRequestPost({ request, env }) {
 
   let reply, matchedId = null, score = 0, matchedPrompt = null, source = null;
   let tutored = false, tutorModel = null;
-  if (isModelQuestion(message)) {
+  // [7 Okt 2026] PILIHAN MODEL: klien boleh memilih model via kapsul di samping
+  // tombol kirim. model:'qwen3.6' -> jawaban LANGSUNG dari server pribadi (relay
+  // Ollama), melewati dataset/sapaan/identitas. Rantai lama tidak berubah.
+  const wantQwen = String(body.model || '').trim() === 'qwen3.6';
+  if (wantQwen) {
+    const q = await askOllamaDirect(env, message, messagesIn);
+    if (q) {
+      reply = q.answer;
+      tutorModel = q.model;
+      tutored = true;
+      source = 'model';
+      matchedPrompt = '(dijawab langsung oleh Qwen3.6 server pribadi)';
+      const saved = await saveTraining(env.DB, message, q.answer);
+      matchedId = saved && saved.id ? saved.id : null;
+    } else {
+      reply = 'Server Qwen3.6 sedang tidak bisa dihubungi. Silakan pilih model Orkestra-1 Mini dulu atau kirim ulang pesanmu ya.';
+    }
+  } else if (isModelQuestion(message)) {
     reply = MODEL_ANSWER;
   } else if (isIdentityQuestion(message)) {
     reply = IDENTITY_ANSWER;
