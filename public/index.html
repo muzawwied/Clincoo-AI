@@ -6725,6 +6725,10 @@ window.chatLivePreview = function () {
                                 // & tersimpan di chat; balasan AI = pesan HARDCODE pemilik —
                                 // TANPA efek ketik: tampil utuh langsung, langsung selesai
                                 // (tombol aksi salin/jempol muncul, tidak lanjut mengetik).
+                                // Timer ms di-reset di sini: pesan hardcode lokal,
+                                // durasinya = waktu render (angka kecil, bukan round-trip
+                                // ke server ~3000ms yang gak masuk akal utk teks instan).
+                                aiReqStartMs = Date.now();
                                 const quotaFinal = quotaReplyText(qMsg);
                                 streamingBuffer = quotaFinal;
                                 charIndex = quotaFinal.length;
