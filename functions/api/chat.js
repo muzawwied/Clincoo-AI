@@ -57,6 +57,7 @@ export async function onRequestPost({ request, env }) {
   // Ollama), melewati dataset/sapaan/identitas. Rantai lama tidak berubah.
   // [8 Okt, arahan pemilik] Model 'swarm': gateway ModelVerse (OpenAI-compat).
   const wantSwarm = String(body.model || '').trim() === 'swarm';
+  const wantGroq = String(body.model || '').trim() === 'groq';
   const wantQwen = String(body.model || '').trim() === 'qwen3.6';
   if (wantSwarm) {
     // Swarm (ModelVerse): jawaban langsung dari gateway, melewati dataset/sapaan.
@@ -86,6 +87,40 @@ export async function onRequestPost({ request, env }) {
       matchedId = savedMv && savedMv.id ? savedMv.id : null;
     } else {
       reply = 'Model Swarm sedang tidak bisa dihubungi. Silakan pilih model Orkestra-1 Mini dulu atau kirim ulang pesanmu ya.';
+    }
+  } else if (wantGroq) {
+    // [12 Okt, arahan pemilik] Model 'groq': jawaban langsung dari API Groq
+    // (gpt-oss-120b utama, gpt-oss-20b cadangan), kunci di env.GROQ_API_KEY.
+    const gqMessages = (Array.isArray(messagesIn) ? messagesIn : [{ role: 'user', content: message }])
+      .map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: String(typeof m.content === 'string' ? m.content : JSON.stringify(m.content || '')).slice(0, 4000) }))
+      .slice(-16);
+    let gqText = '', gqModelUsed = '';
+    if (env.GROQ_API_KEY) {
+      for (const gqModel of ['openai/gpt-oss-120b', 'openai/gpt-oss-20b']) {
+        try {
+          const gqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + env.GROQ_API_KEY },
+            body: JSON.stringify({ model: gqModel, max_tokens: 2048, messages: gqMessages }),
+            signal: AbortSignal.timeout(45000)
+          });
+          if (!gqRes.ok) { console.log('labs:groq-fail', gqModel, gqRes.status); continue; }
+          const gqData = await gqRes.json().catch(() => ({}));
+          const t = String((gqData && gqData.choices && gqData.choices[0] && gqData.choices[0].message && gqData.choices[0].message.content) || '').trim();
+          if (t) { gqText = t; gqModelUsed = gqModel.split('/')[1]; break; }
+        } catch (gqErr) { console.log('labs:groq-err', gqModel, gqErr && gqErr.message); }
+      }
+    }
+    if (gqText) {
+      reply = gqText;
+      tutored = true;
+      tutorModel = 'Groq (' + gqModelUsed + ')';
+      source = 'model';
+      matchedPrompt = '(dijawab langsung oleh Groq)';
+      const savedGq = await saveTraining(env.DB, message, gqText);
+      matchedId = savedGq && savedGq.id ? savedGq.id : null;
+    } else {
+      reply = 'Model Groq sedang tidak bisa dihubungi. Silakan pilih model Orkestra-1 Mini dulu atau kirim ulang pesanmu ya.';
     }
   } else if (wantQwen) {
     const q = await askOllamaDirect(env, message, messagesIn);

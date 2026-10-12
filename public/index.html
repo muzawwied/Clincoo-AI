@@ -1062,6 +1062,9 @@
                         <button type="button" onclick="applyModelChoice('swarm')" class="w-full flex items-center justify-between gap-2 px-3 py-2.5 hover:bg-gray-50 rounded-lg transition-colors text-sm font-medium text-left cursor-pointer">
                             <span>Swarm</span>
                         </button>
+                        <button type="button" onclick="applyModelChoice('groq'" class="w-full flex items-center justify-between gap-2 px-3 py-2.5 hover:bg-gray-50 rounded-lg transition-colors text-sm font-medium text-left cursor-pointer">
+                            <span>Groq</span>
+                        </button>
                     </div>
                 </div>
                 <button id="submit-prompt-btn" class="w-10 h-10 bg-black text-white rounded-full hover:bg-gray-800 transition-all duration-200 active:scale-90 flex items-center justify-center cursor-pointer shadow-sm hover:shadow-md shrink-0">
@@ -1119,7 +1122,7 @@
           const mLabel = document.getElementById('model-select-label');
           if (!mBtn || !mMenu || !mLabel) return;
           const KEY = 'clincoo_model_choice';
-          const CHOICES = { orkestra: { label: 'Orkestra-1 Mini', param: null }, swarm: { label: 'Swarm', param: 'swarm' } };
+          const CHOICES = { orkestra: { label: 'Orkestra-1 Mini', param: null }, swarm: { label: 'Swarm', param: 'swarm' }, groq: { label: 'Groq', param: 'groq' } };
           let choice;
           try { choice = localStorage.getItem(KEY); } catch (e0) { choice = null; }
           if (!CHOICES[choice]) choice = 'orkestra';
@@ -6039,7 +6042,8 @@ window.chatLivePreview = function () {
             // Aktif hanya saat user memilih Qwen3.6 di kapsul model. Jawaban datang
             // dari /api/chat labs sendiri (non-stream, backend panggil relay Ollama).
             // Aliran penuh (tools/workspace/streaming) TIDAK disentuh sama sekali.
-            if (window.selectedChatModel && window.selectedChatModel() === 'swarm') {
+            const selChatModel = window.selectedChatModel ? window.selectedChatModel() : null;
+            if (selChatModel === 'swarm' || selChatModel === 'groq') {
                 try {
                     const qHist = [];
                     for (const m of messages) {
@@ -6052,12 +6056,12 @@ window.chatLivePreview = function () {
                     const qRes = await fetch('/api/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ messages: qHist.slice(-16), model: 'swarm', session_id: currentSessionId || undefined }),
+                        body: JSON.stringify({ messages: qHist.slice(-16), model: selChatModel, session_id: currentSessionId || undefined }),
                         signal: abortController.signal
                     });
                     const qJson = await qRes.json().catch(function () { return {}; });
                     const qText = qJson && qJson.text ? String(qJson.text) : '';
-                    if (!qRes.ok || !qText.trim()) throw new Error((qJson && qJson.error) || 'Jawaban Swarm kosong');
+                    if (!qRes.ok || !qText.trim()) throw new Error((qJson && qJson.error) || 'Jawaban model kosong');
                     if (qJson.session_id) currentSessionId = qJson.session_id;
                     clearTimeout(apiTimeout);
                     clearInterval(statusInterval);
@@ -6070,7 +6074,7 @@ window.chatLivePreview = function () {
                     if (qErr && qErr.name === 'AbortError') return; // user stop: stopGeneration sudah memfinalisasi bubble
                     clearTimeout(apiTimeout);
                     clearInterval(statusInterval);
-                    streamingBuffer = 'Model Swarm sedang tidak bisa dihubungi. Pilih model Orkestra-1 Mini dulu atau kirim ulang pesanmu ya.';
+                    streamingBuffer = 'Model pilihanmu sedang tidak bisa dihubungi. Pilih model Orkestra-1 Mini dulu atau kirim ulang pesanmu ya.';
                     const qIdx = messages.findIndex(m => m.id === aiMsgObj.id);
                     if (qIdx !== -1) messages[qIdx].isError = true;
                     isFetchComplete = true;
