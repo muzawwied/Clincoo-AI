@@ -207,6 +207,25 @@ export async function askGuruAI(env, prompt, memory) {
     if (r.ok && text && String(text).trim()) return { answer: String(text).trim(), model: 'qwen3.6 (server pribadi)' };
     console.log('guru:ollama-miss', r.status, String(d && d.error || '').slice(0, 120));
   } catch (e) { console.log('guru:ollama-err', e && e.message); }
+  // 1c) [12 Okt 2026, kunci Groq milik sendiri] fallback cepat: gpt-oss-120b di Groq
+  // (free tier cepat, ~8000 token/menit) — dicoba sebelum OpenRouter/Gemini publik.
+  if (env.GROQ_API_KEY) {
+    const gmodels = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b'];
+    for (const gmodel of gmodels) {
+      try {
+        const gres = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + env.GROQ_API_KEY },
+          body: JSON.stringify({ model: gmodel, max_tokens: 1024, messages: [ { role: 'system', content: sys }, { role: 'user', content: user } ] }),
+          signal: AbortSignal.timeout(30000)
+        });
+        const gdata = await gres.json().catch(() => ({}));
+        const gtext = gdata && gdata.choices && gdata.choices[0] && gdata.choices[0].message && gdata.choices[0].message.content;
+        if (gres.ok && gtext && String(gtext).trim()) return { answer: String(gtext).trim(), model: gmodel.split('/')[1] + ' (Groq)' };
+        console.log('guru:groq-fail', gmodel, gres.status);
+      } catch (e) { console.log('guru:groq-err', gmodel, e && e.message); }
+    }
+  }
   if (env.OPENROUTER_KEY) {
     const models = ['google/gemma-4-26b-a4b-it:free', 'qwen/qwen3.8-27b:free', 'nvidia/nemotron-3-super-120b-a12b:free'];
     for (const model of models) {
