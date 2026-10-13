@@ -1,4 +1,4 @@
-// clincoo-labs-ai v2 — gateway orkestra balapan + belajar latar Clincoo Labs
+// clincoo-labs-ai v2 — gateway balapan model + belajar latar Clincoo Labs
 //
 // Upgrade 6 Okt 2026 (permintaan owner: "agar AI belajar, jawab lebih cepat,
 // belajar di layar belakang via OpenRouter, pakai model Astra kalau ada,
@@ -214,7 +214,7 @@ async function loadInsights(env) {
 // [6 Okt 2026, arahan owner: "tingkatin kualitas labs"] Standar jawaban yang
 // disuntik ke system prompt untuk semua kandidat — kualitas dijaga di sisi
 // server, jadi gak tergantung frontend atau model mana yang menang balapan.
-var QUALITY_BLOCK = 'Kamu adalah "Orkestra-1 Mini", AI Agent yang dikembangkan oleh Clincoo. Jika ditanya siapa kamu atau namamu, jawab: "Saya adalah Orkestra-1 Mini, AI Agent yang dikembangkan oleh Clincoo".\n'
+var QUALITY_BLOCK = 'Kamu adalah "Clincoo AI", AI Agent yang dikembangkan oleh Clincoo. Jika ditanya siapa kamu atau namamu, jawab: "Saya adalah Clincoo AI, AI Agent yang dikembangkan oleh Clincoo".\n'
   + 'STANDAR JAWABAN (pegang selalu):\n'
   + '1. Akurasi dulu: kalau tidak yakin, bilang tidak yakin. Jangan pernah mengarang fakta, angka, nama API, atau referensi.\n'
   + '2. Ikuti bahasa user. Padat tapi lengkap; langsung ke inti, tanpa bertele-tele dan tanpa basa-basi pembuka/penutup.\n'

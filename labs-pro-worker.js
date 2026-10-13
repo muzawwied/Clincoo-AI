@@ -1,4 +1,4 @@
-// clincoo-labs-pro v1.1 — "Orkestra-1 Mini" (AI Agent Labs Clincoo, 7 Okt 2026)
+// clincoo-labs-pro v1.1 — Clincoo AI (AI Agent Labs Clincoo, 7 Okt 2026)
 // DEPLOY: Cloudflare Workers akun B, script 'clincoo-labs-pro', via PUT multipart API
 // (metadata WAJIB bawa bindings: ai AI, plain CF_AI_ACCOUNT_ID, secret CF_AI_TOKEN,
 // d1 DB clincoo-db, plain OLLAMA_URL). Kunci API dibaca dari tabel env_vars D1.
@@ -46,7 +46,7 @@ const QUALITY_LINES = [
   '5. Beri rekomendasi tegas; kalau user keliru, koreksi dengan sopan.'
 ];
 const QUALITY_BLOCK = QUALITY_LINES.join('\n');
-const IDENTITY_BLOCK = 'Kamu adalah "Orkestra-1 Mini", AI Agent yang dikembangkan oleh Clincoo. Jawab ringkas, akurat, santai dalam Bahasa Indonesia. Jika ditanya siapa kamu atau namamu, jawab: "Saya adalah Orkestra-1 Mini, AI Agent yang dikembangkan oleh Clincoo".\n' + QUALITY_BLOCK;
+const IDENTITY_BLOCK = 'Kamu adalah "Clincoo AI", AI Agent yang dikembangkan oleh Clincoo. Jawab ringkas, akurat, santai dalam Bahasa Indonesia. Jika ditanya siapa kamu atau namamu, jawab: "Saya adalah Clincoo AI, AI Agent yang dikembangkan oleh Clincoo".\n' + QUALITY_BLOCK;
 
 async function d1Pairs(env, like) {
   try {
@@ -343,8 +343,8 @@ function staticAnalyze(code) {
 
 // ---------- Agent loop ----------
 const SYSTEM_AGENT = [
-  'Kamu adalah "Orkestra-1 Mini", AI Agent yang dikembangkan oleh Clincoo. Kamu PUNYA TOOLS untuk menyelesaikan tugas besar.',
-  'Jika ditanya siapa kamu atau namamu, jawab: "Saya adalah Orkestra-1 Mini, AI Agent yang dikembangkan oleh Clincoo" — jangan sebut model dasar atau perusahaan lain.',
+  'Kamu adalah "Clincoo AI", AI Agent yang dikembangkan oleh Clincoo. Kamu PUNYA TOOLS untuk menyelesaikan tugas besar.',
+  'Jika ditanya siapa kamu atau namamu, jawab: "Saya adalah Clincoo AI, AI Agent yang dikembangkan oleh Clincoo" — jangan sebut model dasar atau perusahaan lain.',
   'Aturan menjawab — WAJIB jawab DALAM SATU OBJEK JSON saja (tanpa teks lain):',
   '{"think":"...pikiran singkat...","actions":[{"tool":"...","args":{...}}],"final":"...jawaban untuk user..."}',
   'Jika tugas masih butuh aksi (membuat file, membaca file, analisa kode), isi "actions" dan kosongkan/isi singkat "final".',
@@ -421,7 +421,7 @@ async function handle(request, env, ctx) {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
   if (request.method === 'GET' && (path === '/' || path === '')) return new Response(UI_HTML, { headers: { 'Content-Type': 'text/html; charset=utf-8', ...CORS } });
   if (request.method === 'GET' && path === '/health')
-    return json({ gateway: 'clincoo-labs-pro v1.1 (Orkestra-1 Mini)', kandidat: (await candidates(env)).map(c => c.name), fitur: ['chat', 'agent+tools', 'balapan', 'analisa_kode', 'workspace'] });
+    return json({ gateway: 'clincoo-labs-pro v1.1 (Clincoo AI)', kandidat: (await candidates(env)).map(c => c.name), fitur: ['chat', 'agent+tools', 'balapan', 'analisa_kode', 'workspace'] });
   if (request.method === 'GET' && path === '/api/stats') {
     const r = await env.DB.prepare('SELECT * FROM labs_pro_stats ORDER BY wins DESC').all();
     return json({ stats: r.results || [] });
@@ -470,7 +470,7 @@ async function handle(request, env, ctx) {
       const r = await agentTurn(env, history, prompt);
       await saveMsg(env, sid, 'user', prompt);
       await saveMsg(env, sid, 'assistant', r.final);
-      return json({ text: r.final, model: r.model || 'orkestra-pro', session_id: sid, rounds: r.rounds.length });
+      return json({ text: r.final, model: r.model || 'clincoo-ai-pro', session_id: sid, rounds: r.rounds.length });
     }
     const msgs = [{ role: 'system', content: IDENTITY_BLOCK }].concat(history.slice(-8), [{ role: 'user', content: prompt }]);
     const r = await raceChat(env, msgs, 2048, 20000);
@@ -496,7 +496,7 @@ async function handle(request, env, ctx) {
     const r = await raceChat(env, [{ role: 'system', content: sys }].concat(chatMsgs), 2048, 20000);
     if (!r.winner) return json({ error: 'semua kandidat gagal' }, 503);
     const text = await verifyAndFixInstall(env, r.winner.text);
-    return json({ text, model: 'orkestra-1-mini:' + r.winner.model, ms: (r.detail[0] || {}).ms });
+    return json({ text, model: 'clincoo-ai:' + r.winner.model, ms: (r.detail[0] || {}).ms });
   }
 
   // Balapan terbuka
@@ -534,14 +534,14 @@ async function handle(request, env, ctx) {
     const r = await agentTurn(env, history, task, body.max_rounds || 6);
     await saveMsg(env, sid, 'user', task);
     await saveMsg(env, sid, 'assistant', r.final);
-    return json({ text: r.final, model: r.model || 'orkestra-pro', session_id: sid, langkah: r.rounds });
+    return json({ text: r.final, model: r.model || 'clincoo-ai-pro', session_id: sid, langkah: r.rounds });
   }
 
   return json({ error: 'Endpoint tidak dikenal: ' + path }, 404);
 }
 
 // ---------- UI sederhana bawaan ----------
-var UI_HTML = '<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Orkestra-1 Mini — Clincoo Labs</title><style>'
+var UI_HTML = '<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Clincoo AI — Clincoo Labs</title><style>'
 + 'body{background:#0b0e14;color:#dfe6f3;font-family:system-ui,Segoe UI,sans-serif;margin:0;padding:16px;max-width:860px;margin:auto}'
 + 'h1{font-size:1.3rem}h1 b{color:#7c5cff}.tab{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}'
 + '.tab button{background:#151a26;color:#9fb0d9;border:1px solid #232b3d;padding:8px 14px;border-radius:10px;cursor:pointer}'
@@ -551,7 +551,7 @@ var UI_HTML = '<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta 
 + '.out{background:#11141f;border:1px solid #232b3d;border-radius:10px;padding:12px;margin-top:10px;white-space:pre-wrap;font-size:.9rem;min-height:40px}'
 + '.file{display:inline-block;background:#151a26;border:1px solid #232b3d;border-radius:8px;padding:6px 10px;margin:4px;font-size:.85rem}'
 + 'img.prev{max-width:180px;border-radius:8px;margin:4px}small{color:#7787a8}</style></head><body>'
-+ '<h1>🎹 <b>Orkestra-1 Mini</b> <small>Clincoo Labs</small></h1>'
++ '<h1>✨ <b>Clincoo AI</b> <small>Clincoo Labs</small></h1>'
 + '<div class="tab"><button id="t-chat" class="on" onclick="tab(1)">Chat</button><button id="t-agent" onclick="tab(2)">Agent (tugas besar)</button><button id="t-race" onclick="tab(3)">Balapan AI</button><button id="t-anal" onclick="tab(4)">Analisa Kode</button><button id="t-ws" onclick="tab(5)">Workspace</button></div>'
 + '<div id="p1"><textarea id="c1" rows="4" placeholder="Tanya apa saja..."></textarea><button class="go" onclick="chat()">Kirim</button><div class="out" id="o1"></div></div>'
 + '<div id="p2" style="display:none"><textarea id="c2" rows="4" placeholder="Contoh: Buatkan file laporan.md berisi rencana bisnis kopi digital, lalu analisa kodenya index.js"></textarea><button class="go" onclick="agent()">Jalankan Agent</button><div class="out" id="o2"></div></div>'

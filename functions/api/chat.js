@@ -8,8 +8,8 @@ const FALLBACK = 'Aku belum dilatih untuk pertanyaan itu, jadi aku tidak akan me
 
 // Identitas asisten: pertanyaan "kamu siapa / nama kamu apa" dijawab langsung,
 // tidak bergantung data latihan.
-const MODEL_ANSWER = 'Aku Orkestra-1 Mini, AI Agent yang dikembangkan oleh Clincoo. \u{1F60A}\n\nAku terus belajar dari setiap obrolan — pengetahuanku disuling dan disimpan secara efisien, jadi makin sering kita berinteraksi, makin paham aku kebutuhanmu.\n\nAda yang bisa kubantu hari ini?';
-const IDENTITY_ANSWER = 'Aku Orkestra-1 Mini, AI Agent yang dikembangkan oleh Clincoo. \u{1F60A}\n\nAku bukan chatbot pasif — aku rekan yang suka menjelaskan dengan detail, contoh, dan analogi sampai kamu benar-benar paham. Aku terus belajar dari setiap obrolan: pengetahuanku tumbuh dari pelajaran terkurasi dan yang kucari sendiri, jadi makin sering kita ngobrol makin paham aku soal kebutuhanmu.\n\nKalau ada hal yang belum kutahu, aku jujur bilang dan langsung kupelajari saat itu juga. Silakan tanya apa saja, dari pengetahuan umum sampai cuma obrolan santai.';
+const MODEL_ANSWER = 'Aku Clincoo AI, AI Agent yang dikembangkan oleh Clincoo. \u{1F60A}\n\nAku terus belajar dari setiap obrolan — pengetahuanku disuling dan disimpan secara efisien, jadi makin sering kita berinteraksi, makin paham aku kebutuhanmu.\n\nAda yang bisa kubantu hari ini?';
+const IDENTITY_ANSWER = 'Aku Clincoo AI, AI Agent yang dikembangkan oleh Clincoo. \u{1F60A}\n\nAku bukan chatbot pasif — aku rekan yang suka menjelaskan dengan detail, contoh, dan analogi sampai kamu benar-benar paham. Aku terus belajar dari setiap obrolan: pengetahuanku tumbuh dari pelajaran terkurasi dan yang kucari sendiri, jadi makin sering kita ngobrol makin paham aku soal kebutuhanmu.\n\nKalau ada hal yang belum kutahu, aku jujur bilang dan langsung kupelajari saat itu juga. Silakan tanya apa saja, dari pengetahuan umum sampai cuma obrolan santai.';
 function isIdentityQuestion(message) {
   const q = String(message || '').toLowerCase();
   if (/who are you|perkenalkan diri|perkenalkan dirimu/.test(q)) return true;
@@ -86,7 +86,7 @@ export async function onRequestPost({ request, env }) {
       const savedMv = await saveTraining(env.DB, message, mvText);
       matchedId = savedMv && savedMv.id ? savedMv.id : null;
     } else {
-      reply = 'Model Swarm sedang tidak bisa dihubungi. Silakan pilih model Orkestra-1 Mini dulu atau kirim ulang pesanmu ya.';
+      reply = 'Model Swarm sedang tidak bisa dihubungi. Silakan pilih model Clincoo AI dulu atau kirim ulang pesanmu ya.';
     }
   } else if (wantGroq) {
     // [12 Okt, arahan pemilik] Model 'groq': jawaban langsung dari API Groq
@@ -120,7 +120,7 @@ export async function onRequestPost({ request, env }) {
       const savedGq = await saveTraining(env.DB, message, gqText);
       matchedId = savedGq && savedGq.id ? savedGq.id : null;
     } else {
-      reply = 'Model Groq sedang tidak bisa dihubungi. Silakan pilih model Orkestra-1 Mini dulu atau kirim ulang pesanmu ya.';
+      reply = 'Model Groq sedang tidak bisa dihubungi. Silakan pilih model Clincoo AI dulu atau kirim ulang pesanmu ya.';
     }
   } else if (wantQwen) {
     const q = await askOllamaDirect(env, message, messagesIn);
@@ -133,7 +133,7 @@ export async function onRequestPost({ request, env }) {
       const saved = await saveTraining(env.DB, message, q.answer);
       matchedId = saved && saved.id ? saved.id : null;
     } else {
-      reply = 'Server Qwen3.6 sedang tidak bisa dihubungi. Silakan pilih model Orkestra-1 Mini dulu atau kirim ulang pesanmu ya.';
+      reply = 'Server Qwen3.6 sedang tidak bisa dihubungi. Silakan pilih model Clincoo AI dulu atau kirim ulang pesanmu ya.';
     }
   } else if (isModelQuestion(message)) {
     reply = MODEL_ANSWER;

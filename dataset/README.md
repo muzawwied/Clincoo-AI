@@ -22,7 +22,7 @@ Setiap percakapan yang dijawab model di labs.clincoo.biz.id otomatis tersimpan k
 
 ## Alur pengumpulan
 
-1. User bertanya di labs → model menjawab (Orkestra-1 Mini / Qwen3.6).
+1. User bertanya di labs → model menjawab (Clincoo AI / Qwen3.6).
 2. `functions/api/chat.js` menyimpan pasangan (pertanyaan, jawaban) via
    `saveTraining()` ke D1; duplikat pertanyaan hanya memperbarui jawaban.
 3. `GET /api/dataset` mengekspor seluruh isi tabel sebagai JSON.
