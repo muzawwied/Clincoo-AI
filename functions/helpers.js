@@ -50,6 +50,44 @@ export async function ensureTables(db) {
   )`).run();
 }
 
+// ---- [Realtime] penanda bersama: satu angka revisi untuk SEMUA data aplikasi.
+// Setiap penulisan (pengetahuan, chat, feedback) menaikkan rev; klien memantau
+// rev lewat /api/sync sehingga semua halaman/perangkat melihat perubahan sama.
+export async function bumpSync(db) {
+  try {
+    await db.prepare("INSERT INTO sync_state (k, v, updated_at) VALUES ('rev', '1', datetime('now')) ON CONFLICT(k) DO UPDATE SET v = CAST(CAST(v AS INTEGER) + 1 AS TEXT), updated_at = datetime('now')").run();
+  } catch (e) {
+    try {
+      await db.prepare("CREATE TABLE IF NOT EXISTS sync_state (k TEXT PRIMARY KEY, v TEXT DEFAULT '0', updated_at TEXT DEFAULT (datetime('now')))").run();
+      await db.prepare("INSERT OR IGNORE INTO sync_state (k, v) VALUES ('rev', '1')").run();
+    } catch (e2) {}
+  }
+}
+
+export async function syncSnapshot(db) {
+  await ensureTables(db);
+  try { await db.prepare("CREATE TABLE IF NOT EXISTS sync_state (k TEXT PRIMARY KEY, v TEXT DEFAULT '0', updated_at TEXT DEFAULT (datetime('now')))").run(); } catch (e) {}
+  let rev = '0', upd = '';
+  try {
+    const s = await db.prepare("SELECT v, updated_at FROM sync_state WHERE k = 'rev'").first();
+    rev = (s && s.v) || '0'; upd = (s && s.updated_at) || '';
+  } catch (e) {}
+  const ex = await db.prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) AS approved, SUM(CASE WHEN source = 'model' THEN 1 ELSE 0 END) AS from_model FROM examples").first();
+  const ch = await db.prepare('SELECT COUNT(*) AS total FROM chat_log').first();
+  const last = await db.prepare('SELECT id, prompt, source, rating, updated_at FROM examples ORDER BY updated_at DESC, id DESC LIMIT 1').first();
+  const lastChat = await db.prepare('SELECT id, question, created_at FROM chat_log ORDER BY id DESC LIMIT 1').first();
+  return {
+    rev: String(rev || '0'),
+    updated_at: upd,
+    examples: (ex && ex.total) || 0,
+    approved: (ex && ex.approved) || 0,
+    from_model: (ex && ex.from_model) || 0,
+    chats: (ch && ch.total) || 0,
+    last_example: last || null,
+    last_chat: lastChat || null
+  };
+}
+
 // ---- Rate limit tulis per IP: maks n aksi per window menit (anti-spam data latihan) ----
 export async function rateLimit(db, request, max = 40, windowMinutes = 60) {
   await ensureTables(db);
@@ -268,9 +306,11 @@ export async function saveTraining(db, prompt, answer) {
   const dup = await db.prepare('SELECT id FROM examples WHERE prompt_norm = ?').bind(norm).first();
   if (dup) {
     await db.prepare("UPDATE examples SET answer = ?, source = 'model', rating = 0, updated_at = datetime('now') WHERE id = ?").bind(answer.slice(0, 8000), dup.id).run();
+    await bumpSync(db);
     return { saved: 1, updated: 1, id: dup.id };
   }
   const r = await db.prepare("INSERT INTO examples (prompt, prompt_norm, answer, source) VALUES (?, ?, ?, 'model')").bind(prompt, norm, answer.slice(0, 8000)).run();
+  await bumpSync(db);
   return { saved: 1, id: r.meta ? r.meta.last_row_id : null };
 }
 

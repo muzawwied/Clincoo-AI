@@ -1,6 +1,6 @@
 // Clincoo — mesin obrolan: pertanyaan dicocokkan ke data latihan (retrieval + skor),
 // di bawah ambang kemiripan Clincoo jujur mengaku belum dilatih.
-import { json, corsPreflight, ensureTables, rateLimit, bestMatch, MATCH_THRESHOLD, askGuruAI, askOllamaDirect, saveTraining, smallTalkReply } from '../helpers.js';
+import { json, corsPreflight, ensureTables, rateLimit, bestMatch, MATCH_THRESHOLD, bumpSync, askGuruAI, askOllamaDirect, saveTraining, smallTalkReply } from '../helpers.js';
 
 export async function onRequestOptions() { return corsPreflight(); }
 
@@ -190,6 +190,7 @@ export async function onRequestPost({ request, env }) {
     'INSERT INTO chat_log (question, reply, matched_id, score) VALUES (?, ?, ?, ?)'
   ).bind(message.slice(0, 500), reply.slice(0, 500), matchedId, score).run();
 
+    await bumpSync(env.DB); // [realtime] kabari semua klien ada obrolan baru
   if (messagesIn) {
     // Respons format halaman chat Clincoo: {text, session_id} (halaman membaca .text)
     return json({ text: reply, session_id: body.session_id || undefined, trained: matchedId != null || tutored, tutored: tutored, model: tutorModel, match: matchedPrompt ? { prompt: matchedPrompt, score: score, source: source } : null });

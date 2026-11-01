@@ -1,5 +1,6 @@
 // Clincoo — API data latihan (Playground): daftar, tambah, nilai, edit, hapus.
 import { json, corsPreflight, ensureTables, rateLimit, normalizePrompt } from '../helpers.js';
+import { bumpSync } from '../helpers.js';
 
 export async function onRequestOptions() { return corsPreflight(); }
 
@@ -46,6 +47,7 @@ export async function onRequestPost({ request, env }) {
   const r = await env.DB.prepare(
     'INSERT INTO examples (prompt, prompt_norm, answer, source) VALUES (?, ?, ?, ?)'
   ).bind(prompt, norm, answer, source).run();
+    await bumpSync(env.DB);
   return json({ added: 1, id: r.meta ? r.meta.last_row_id : null });
 }
 
@@ -82,6 +84,7 @@ export async function onRequestPatch({ request, env }) {
   if (!sets.length) return json({ error: 'Tidak ada perubahan' }, 422);
   sets.push("updated_at = datetime('now')");
   await env.DB.prepare('UPDATE examples SET ' + sets.join(', ') + ' WHERE id = ?').bind(...args, id).run();
+    await bumpSync(env.DB);
   return json({ ok: true });
 }
 
@@ -92,5 +95,6 @@ export async function onRequestDelete({ request, env }) {
   const id = Number(body.id || 0);
   if (!id) return json({ error: 'id wajib' }, 422);
   await env.DB.prepare('DELETE FROM examples WHERE id = ?').bind(id).run();
+    await bumpSync(env.DB);
   return json({ ok: true });
 }
