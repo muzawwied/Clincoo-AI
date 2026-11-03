@@ -4,7 +4,7 @@
 const JINA_READ = 'https://r.jina.ai/';
 const JINA_SEARCH = 'https://s.jina.ai/';
 const E2B_API_BASE = 'https://api.e2b.app';
-const E2B_TEMPLATE = 'base';
+const E2B_TEMPLATE = 'code-interpreter-v1';
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -65,14 +65,16 @@ async function e2bExec(env, code) {
     });
     const raw = await r.text();
     if (!r.ok) return { error: 'Eksekusi gagal (HTTP ' + r.status + '): ' + raw.slice(0, 300) };
-    let out = [], err = [];
+    let out = '', err = '';
     for (const line of raw.split('\n')) {
-      if (!line.trim()) continue;
-      let o; try { o = JSON.parse(line); } catch (_) { continue; }
-      if (o.line) out.push(String(o.line));
-      if (o.error) err.push(String(o.error));
+      const t = line.trim(); if (!t) continue;
+      let o; try { o = JSON.parse(t); } catch (_) { continue; }
+      if (o.type === 'stdout') out += o.text || '';
+      else if (o.type === 'stderr') err += o.text || '';
+      else if (o.type === 'error') err += (o.name || 'Error') + ': ' + (o.value || '') + '\n';
+      else if (o.type === 'result' && o.text) out += o.text;
     }
-    return { stdout: out.join('\n').slice(0, 12000), stderr: err.join('\n').slice(0, 4000) };
+    return { stdout: out.slice(0, 12000), stderr: err.slice(0, 4000) };
   } catch (e) {
     return { error: 'Eksekusi timeout/gagal: ' + (e && e.message) };
   } finally {
