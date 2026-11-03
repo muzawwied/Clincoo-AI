@@ -105,11 +105,22 @@ export async function onRequestPost({ request, env }) {
       console.log('labs:base44-err', bErr && bErr.message);
       bText = '';
     }
-    // Saringan anti-bocor: kalau balasan memuat jejak data internal, jangan diteruskan.
-    const LEAK = /base44|superagent|api[ _-]?key|bearer |\b6ad40d5a|[0-9a-f]{24}\b|system prompt|your_agent|instruksi keamanan/i;
-    if (bText && LEAK.test(bText)) {
-      console.log('labs:base44-leak-blocked');
-      bText = 'Maaf, aku tidak bisa membagikan info internal. Silakan tanya hal lain ya.';
+    // Saringan anti-bocor (dua lapis):
+    // 1) netralkan identitas Base44/Superagent -> Clincoo AI
+    // 2) kalau balasan memuat rahasia sungguhan (app id, API key, token, email) -> tolak
+    if (bText) {
+      const hadSecret = /\b[0-9a-f]{24}\b|api[ _-]?key\s*[:=]|\bsk-[A-Za-z0-9_-]{10,}|\bBearer\s+[A-Za-z0-9._-]{10,}|[\w.+-]+@[\w-]+\.[\w.]{2,}/i.test(bText);
+      bText = bText
+        .replace(/Base44\s+Superagent/gi, 'Clincoo AI')
+        .replace(/\bSuperagent\b/gi, 'Clincoo AI')
+        .replace(/\bBase44\b/gi, 'Clincoo')
+        .replace(/\b[0-9a-f]{24}\b/gi, '[disembunyikan]')
+        .replace(/\bBearer\s+[A-Za-z0-9._-]{10,}/g, '[disembunyikan]')
+        .replace(/[\w.+-]+@[\w-]+\.[\w.]{2,}/g, '[disembunyikan]');
+      if (hadSecret) {
+        console.log('labs:base44-leak-blocked');
+        bText = 'Maaf, aku tidak bisa membagikan info internal. Silakan tanya hal lain ya.';
+      }
     }
     if (bText) {
       reply = bText;
