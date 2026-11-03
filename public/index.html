@@ -1052,10 +1052,13 @@
                 <div class="flex items-center gap-1.5 shrink-0">
                 <div class="relative">
                     <button id="model-select-btn" type="button" class="h-9 px-3 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center gap-1.5 cursor-pointer" title="Pilih model AI" aria-expanded="false">
-                        <span id="model-select-label" class="text-xs font-semibold text-gray-700 whitespace-nowrap">Clincoo AI</span>
+                        <span id="model-select-label" class="text-xs font-semibold text-gray-700 whitespace-nowrap">Auto</span>
                         <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     <div id="model-select-menu" class="absolute bottom-full right-0 mb-2 w-60 bg-white text-gray-800 border border-gray-100 rounded-xl shadow-xl p-1.5 flex flex-col gap-1 opacity-0 invisible translate-y-2 pointer-events-none transition-all duration-300 z-50 origin-bottom-right">
+                        <button type="button" onclick="applyModelChoice('auto')" class="w-full flex items-center justify-between gap-2 px-3 py-2.5 hover:bg-gray-50 rounded-lg transition-colors text-sm font-medium text-left cursor-pointer">
+                            <span>Auto</span>
+                        </button>
                         <button type="button" onclick="applyModelChoice('clincoo')" class="w-full flex items-center justify-between gap-2 px-3 py-2.5 hover:bg-gray-50 rounded-lg transition-colors text-sm font-medium text-left cursor-pointer">
                             <span>Clincoo AI</span>
                         </button>
@@ -1065,9 +1068,7 @@
                         <button type="button" onclick="applyModelChoice('groq')" class="w-full flex items-center justify-between gap-2 px-3 py-2.5 hover:bg-gray-50 rounded-lg transition-colors text-sm font-medium text-left cursor-pointer">
                             <span>Groq</span>
                         </button>
-                        <button type="button" onclick="applyModelChoice('base44')" class="w-full flex items-center justify-between gap-2 px-3 py-2.5 hover:bg-gray-50 rounded-lg transition-colors text-sm font-medium text-left cursor-pointer">
-                            <span>Base44 Superagent</span>
-                        </button>
+
                     </div>
                 </div>
                 <button id="submit-prompt-btn" class="w-10 h-10 bg-black text-white rounded-full hover:bg-gray-800 transition-all duration-200 active:scale-90 flex items-center justify-center cursor-pointer shadow-sm hover:shadow-md shrink-0">
@@ -1125,10 +1126,10 @@
           const mLabel = document.getElementById('model-select-label');
           if (!mBtn || !mMenu || !mLabel) return;
           const KEY = 'clincoo_model_choice';
-          const CHOICES = { clincoo: { label: 'Clincoo AI', param: null }, swarm: { label: 'Swarm', param: 'swarm' }, groq: { label: 'Groq', param: 'groq' }, base44: { label: 'Base44 Superagent', param: 'base44' } };
+          const CHOICES = { auto: { label: 'Auto', param: 'auto' }, clincoo: { label: 'Clincoo AI', param: null }, swarm: { label: 'Swarm', param: 'swarm' }, groq: { label: 'Groq', param: 'groq' } };
           let choice;
           try { choice = localStorage.getItem(KEY); } catch (e0) { choice = null; }
-          if (!CHOICES[choice]) choice = 'clincoo';
+          if (!CHOICES[choice]) choice = 'auto';
           const isOpen = function () { return mMenu.classList.contains('visible'); };
           const setOpen = function (open) {
             if (open) { mMenu.classList.remove('opacity-0', 'invisible', 'translate-y-2', 'pointer-events-none'); mMenu.classList.add('opacity-100', 'visible', 'translate-y-0', 'pointer-events-auto'); }
@@ -6047,7 +6048,7 @@ window.chatLivePreview = function () {
             // dari /api/chat labs sendiri (non-stream, backend panggil relay Ollama).
             // Aliran penuh (tools/workspace/streaming) TIDAK disentuh sama sekali.
             const selChatModel = window.selectedChatModel ? window.selectedChatModel() : null;
-            if (selChatModel === 'swarm' || selChatModel === 'groq' || selChatModel === 'base44') {
+            if (selChatModel === 'swarm' || selChatModel === 'groq' || selChatModel === 'auto') {
                 try {
                     const qHist = [];
                     for (const m of messages) {
