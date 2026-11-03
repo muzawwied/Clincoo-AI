@@ -1065,6 +1065,9 @@
                         <button type="button" onclick="applyModelChoice('groq')" class="w-full flex items-center justify-between gap-2 px-3 py-2.5 hover:bg-gray-50 rounded-lg transition-colors text-sm font-medium text-left cursor-pointer">
                             <span>Groq</span>
                         </button>
+                        <button type="button" onclick="applyModelChoice('base44')" class="w-full flex items-center justify-between gap-2 px-3 py-2.5 hover:bg-gray-50 rounded-lg transition-colors text-sm font-medium text-left cursor-pointer">
+                            <span>Base44 Superagent</span>
+                        </button>
                     </div>
                 </div>
                 <button id="submit-prompt-btn" class="w-10 h-10 bg-black text-white rounded-full hover:bg-gray-800 transition-all duration-200 active:scale-90 flex items-center justify-center cursor-pointer shadow-sm hover:shadow-md shrink-0">
@@ -1122,7 +1125,7 @@
           const mLabel = document.getElementById('model-select-label');
           if (!mBtn || !mMenu || !mLabel) return;
           const KEY = 'clincoo_model_choice';
-          const CHOICES = { clincoo: { label: 'Clincoo AI', param: null }, swarm: { label: 'Swarm', param: 'swarm' }, groq: { label: 'Groq', param: 'groq' } };
+          const CHOICES = { clincoo: { label: 'Clincoo AI', param: null }, swarm: { label: 'Swarm', param: 'swarm' }, groq: { label: 'Groq', param: 'groq' }, base44: { label: 'Base44 Superagent', param: 'base44' } };
           let choice;
           try { choice = localStorage.getItem(KEY); } catch (e0) { choice = null; }
           if (!CHOICES[choice]) choice = 'clincoo';
@@ -6044,7 +6047,7 @@ window.chatLivePreview = function () {
             // dari /api/chat labs sendiri (non-stream, backend panggil relay Ollama).
             // Aliran penuh (tools/workspace/streaming) TIDAK disentuh sama sekali.
             const selChatModel = window.selectedChatModel ? window.selectedChatModel() : null;
-            if (selChatModel === 'swarm' || selChatModel === 'groq') {
+            if (selChatModel === 'swarm' || selChatModel === 'groq' || selChatModel === 'base44') {
                 try {
                     const qHist = [];
                     for (const m of messages) {
