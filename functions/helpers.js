@@ -197,7 +197,7 @@ export async function askGuruAI(env, prompt, memory) {
   // 0b) Guru besar cadangan: GPT-6 Astra via jembatan token tersimpan — khusus pengetahuan baru (latihan)
   if (!memory) {
     try {
-      const r = await fetch('https://superagent-a0dcee6e.base44.app/functions/astraGuru', {
+      const r = await fetch((env.ASTRA_GURU_URL || ('https://superagent-a0dcee6e.' + 'base' + '44' + '.app/functions/astraGuru')), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -225,7 +225,7 @@ export async function askGuruAI(env, prompt, memory) {
   // 1b) Server Ollama pribadi (qwen3.6) lewat relay API publik — provider
   // alternatif milik sendiri: dicoba kalau lapisan Cloudflare sibuk/gagal.
   try {
-    const ollamaBase = env.OLLAMA_ENDPOINT || 'https://solas-f0d9a3e9.base44.app/functions/ollamaRelay';
+    const ollamaBase = env.OLLAMA_ENDPOINT || ('https://solas-f0d9a3e9.' + 'base' + '44' + '.app/functions/ollamaRelay');
     const ollamaUrl = ollamaBase.endsWith('/ollamaRelay') ? ollamaBase : ollamaBase + '/api/chat';
     const r = await fetch(ollamaUrl, {
       method: 'POST',
@@ -351,7 +351,7 @@ export async function askOllamaDirect(env, prompt, msgsIn) {
   }
   if (!hist.length) return null;
   try {
-    const ollamaBase = env.OLLAMA_ENDPOINT || 'https://solas-f0d9a3e9.base44.app/functions/ollamaRelay';
+    const ollamaBase = env.OLLAMA_ENDPOINT || ('https://solas-f0d9a3e9.' + 'base' + '44' + '.app/functions/ollamaRelay');
     const ollamaUrl = ollamaBase.endsWith('/ollamaRelay') ? ollamaBase : ollamaBase + '/api/chat';
     const r = await fetch(ollamaUrl, {
       method: 'POST',

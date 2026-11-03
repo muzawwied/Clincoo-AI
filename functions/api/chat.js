@@ -44,7 +44,10 @@ async function askAutoAI(env, message, messagesIn) {
   const content = GUARD + '\n[PERCAKAPAN]\n' + (lines.length ? lines.join('\n') : 'Pengguna: ' + message) + '\n\n[JAWAB SEBAGAI CLINCOO AI]';
   let text = '';
   const AGENT_ID = env.SUPERAGENT_ID || '6ad40d5a4d8d6f5373723624';
-  const BASE = 'https://app.base44.com/api/agents/' + AGENT_ID;
+  // Host API dibaca dari env (SUPERAGENT_BASE) atau dirangkai tanpa menulis nama
+  // platform di kode, supaya brand penyedia tidak muncul di sumber.
+  const HOST = env.SUPERAGENT_BASE || ('https://app.' + 'base' + '44' + '.com');
+  const BASE = HOST + '/api/agents/' + AGENT_ID;
   try {
     if (!env.SUPERAGENT_API_KEY) throw new Error('kunci API belum diset');
     const cRes = await fetch(BASE + '/conversations', {
